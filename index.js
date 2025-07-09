@@ -1,8 +1,12 @@
 const Koa = require("koa");
 const fs = require("fs");
+const serve = require("koa-static");
 const app = new Koa();
 const jwt = require("jsonwebtoken");
 const secretKey = "564798ty9GJHB%^&*(KJNLK";
+
+// Serve static files
+app.use(serve(__dirname));
 
 app
 	.use(async (ctx, next) => {

@@ -1,16 +1,22 @@
 {
-  "name": "practica2025",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "jsonwebtoken": "^9.0.2",
-    "koa": "^3.0.0"
-  }
+	"name": "practica2025",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js",
+		"build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
+	},
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"@tailwindcss/cli": "^4.1.11",
+		"jsonwebtoken": "^9.0.2",
+		"koa": "^3.0.0",
+		"koa-static": "^5.0.0"
+	},
+	"devDependencies": {
+		"tailwindcss": "^4.1.11"
+	}
 }
