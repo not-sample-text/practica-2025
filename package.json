@@ -3,7 +3,6 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "node index.js",
 		"build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
 	},
@@ -14,9 +13,9 @@
 		"@tailwindcss/cli": "^4.1.11",
 		"jsonwebtoken": "^9.0.2",
 		"koa": "^3.0.0",
-		"koa-static": "^5.0.0"
-	},
-	"devDependencies": {
+		"koa-static": "^5.0.0",
+		"koa-websocket": "^5.0.1",
+		"koa-route": "^3.2.0",
 		"tailwindcss": "^4.1.11"
 	}
 }

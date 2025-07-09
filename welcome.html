@@ -4,31 +4,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/dist/output.css">
     <title>Bun venit!</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-stone-100 min-h-screen text-indigo-900 dark:bg-stone-900 dark:text-indigo-200">
+<body class="bg-stone-100 min-h-screen text-stone-900 dark:bg-stone-900 dark:text-stone-200">
     <div class="container mx-auto py-10 px-4">
         <!-- Mesaj de bun venit -->
         <div
             class="bg-indigo-100 border border-indigo-300 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-200 dark:border-indigo-700 text-center px-6 py-4 rounded mb-8">
             Bun venit, <strong>@username!</strong>
         </div>
-        <!-- Lista de persoane -->
-        <div class="bg-stone-50 dark:bg-stone-800 rounded-lg shadow-md">
-            <div class="px-6 py-4 border-b border-stone-200 dark:border-stone-700 text-lg font-semibold">
-                Lista de persoane
-            </div>
-            <ul class="divide-y divide-stone-200 dark:divide-stone-700">
-                <li class="px-6 py-3">Andrei Popescu</li>
-                <li class="px-6 py-3">Maria Ionescu</li>
-                <li class="px-6 py-3">Ioana Georgescu</li>
-                <li class="px-6 py-3">Alex Dumitru</li>
-            </ul>
+        <!-- Chat UI -->
+        <div class="bg-stone-50 dark:bg-stone-800 rounded-lg shadow-md p-6">
+            <input type="text"
+                class="w-full px-4 py-2 rounded border border-stone-300 dark:border-stone-700 mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-stone-700"
+                onkeyup="sendMessage(event)" placeholder="Scrie un mesaj către ceilalți">
+            <ul id="messages" class="space-y-2"></ul>
         </div>
     </div>
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        ws.onmessage = function (event) {
+            const [token, message] = event.data.split('–');
+            const messagesList = document.getElementById('messages');
+            const newMessage = document.createElement('li');
+            const { username } = decodeJWTPayload(token);
+            const isCurentUser = document.cookie.includes('token=' + token);
+            if (isCurentUser) {
+                newMessage.className = 'text-green-600 text-right';
+            } else {
+                newMessage.className = 'text-stone-500';
+            }
+            newMessage.innerHTML = `<p><small class="text-xs text-stone-400">${isCurentUser ? 'eu' : username}</small><br/>${message}</p>`;
+            messagesList.appendChild(newMessage);
+        };
+        ws.onopen = function () {
+            // Connection established
+        };
+        function sendMessage(event) {
+            if (event.key === 'Enter') {
+                const message = event.target.value;
+                ws.send(message);
+                event.target.value = '';
+            }
+        }
+        function decodeJWTPayload(token) {
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) return '';
+                const base64Url = parts[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(
+                    atob(base64)
+                        .split('')
+                        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                        .join('')
+                );
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return '';
+            }
+        }
+    </script>
 </body>
 
 </html>
