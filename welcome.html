@@ -32,7 +32,7 @@
             const messagesList = document.getElementById('messages');
             const newMessage = document.createElement('li');
             const {username} = decodeJWTPayload(token);
-            const isCurentUser = document.cookie.includes('token=' + token)
+            const isCurentUser = document.cookie.includes('token=' + token);
             if (isCurentUser) {
                 newMessage.className = 'text-success text-end';
             } else {
@@ -75,8 +75,6 @@
                 return '';
             }
         }
-
-
     </script>
 </body>
 

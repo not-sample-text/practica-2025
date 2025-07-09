@@ -6,12 +6,10 @@ const websockify = require('koa-websocket');
 
 const clients = new Map(); // Store connected clients
 const option = {
-  httpOnly: false,         // ✅ dacă vrei să-l vezi din JS (document.cookie)
-  sameSite: 'lax',         // ✅ Lax sau Strict sau None (vezi explicații jos)
-  secure: false,           // ✅ false pe localhost (true doar pe HTTPS)
-  domain: 'localhost',     // opțional; se poate omite pe localhost
-  path: '/',               // disponibil pe tot site-ul
-  maxAge: 1000 * 60 * 60,  // opțional: 1 oră
+    httpOnly: false,    // ✅ accesibil din browser
+    secure: false,      // ✅ nu cere HTTPS
+    sameSite: 'lax',    // ✅ ok pe localhost
+    path: '/',          // ✅ disponibil pe toată aplicația
 };
 const secretKey = '564798ty9GJHB%^&*(KJNLK';
 const app = websockify(new Koa());
@@ -19,17 +17,20 @@ const app = websockify(new Koa());
 app.ws.use(route.all('/ws', function (ctx) {
     // `ctx` is the regular koa context created from the `ws` onConnection `socket.upgradeReq` object.
     // the websocket is added to the context on `ctx.websocket`.
-    const { username } = jwt.verify(ctx.cookies.get('token'), secretKey);
-    clients.set(ctx.cookies.get('token'), ctx.websocket);
-    console.log(`WebSocket connections: ${clients.size}`);
-    clients.forEach((_,token)=>console.log(`${jwt.verify(token, secretKey).username}`));
+    const token = ctx.cookies.get('token');
+    const { username } = jwt.verify(token, secretKey);
+    clients.set(token, ctx.websocket);
+    console.log(`Socket client «${token}» added`);
+    // console.log(`WebSocket connections: ${clients.size}`);
+    // clients.forEach((_, token) => console.log(`${jwt.verify(token, secretKey).username}`));
     ctx.websocket.send(`token–Hello ${username}, welcome to the WebSocket server!`);
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
-        console.log(`Received ws from client: ${message}`);
+        // console.log(`Received ws from client: ${message}`);
         // broadcast the message to all connected clients
-        clients.forEach((client, token) => {
+        clients.forEach((client) => {
             if (client.readyState === client.OPEN) {
+                console.log(token);
                 client.send(`${token}–${message}`);
             }
         });
