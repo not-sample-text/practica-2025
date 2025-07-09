@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/dist/output.css">
+    <link rel="stylesheet" type="text/css" href="/output.css">
     <title>Login</title>
 </head>
 
@@ -45,18 +45,21 @@
                 </button>
             </div>
             <div class="p-6">
-                <form id="loginForm" method="get" action="/login">
+                <form id="loginForm" method="get" action="/login" novalidate>
                     <div class="mb-4">
                         <label for="nume" class="block text-sm font-medium mb-1">Nume</label>
                         <input type="text"
                             class="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-stone-700 dark:border-stone-600"
                             id="nume" name="username" placeholder="Nume" required>
+                        <small id="login-username-error" class="text-red-600 text-xs mt-1 hidden"></small>
                     </div>
                     <div class="mb-4">
                         <label for="parola" class="block text-sm font-medium mb-1">Parolă</label>
                         <input type="password"
                             class="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-stone-700 dark:border-stone-600"
                             id="parola" name="password" placeholder="Parola" required>
+                        <small id="login-password-error" class="text-red-600 text-xs mt-1 hidden"></small>
+                        <div id="login-password-strength" class="text-xs mt-1"></div>
                     </div>
                     <button type="submit"
                         class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Conectare</button>
@@ -148,6 +151,140 @@
                 closeSignup();
             }
         });
+    });
+
+    // Username validation logic
+    function validateUsername(username) {
+        if (!/^\w{3,20}$/.test(username)) {
+            return 'Numele de utilizator trebuie să aibă între 3 și 20 de caractere și poate conține doar litere, cifre și underscore (_).';
+        }
+        return '';
+    }
+    let loginAggressive = false;
+    let lastServerUsernameError = '';
+    const loginForm = document.getElementById('loginForm');
+    const loginUsername = document.getElementById('nume');
+    const loginUsernameError = document.getElementById('login-username-error');
+    loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        let hasError = false;
+        // Client-side username validation
+        const userError = validateUsername(loginUsername.value);
+        if (userError) {
+            loginUsernameError.textContent = userError;
+            loginUsernameError.classList.remove('hidden');
+            loginAggressive = true;
+            lastServerUsernameError = '';
+            hasError = true;
+        } else {
+            loginUsernameError.classList.add('hidden');
+        }
+        // Client-side password validation
+        if (!loginPassword.value) {
+            loginPasswordError.textContent = 'Parola este obligatorie.';
+            loginPasswordError.classList.remove('hidden');
+            hasError = true;
+        } else {
+            loginPasswordError.classList.add('hidden');
+        }
+        if (hasError) return;
+        // AJAX POST to /login
+        console.log('Attempting login for username:', loginUsername.value);
+        const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: loginUsername.value, password: loginPassword.value })
+        });
+        console.log('Login response status:', res.status);
+        console.log('Response Content-Type:', res.headers.get('Content-Type'));
+        if (res.ok) {
+            const data = await res.json();
+            if (!data.error) {
+                console.log('Login successful, redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 100);
+            } else {
+                console.log('Validation errors detected, stopping redirection.');
+            }
+        } else {
+            try {
+                const rawText = await res.text();
+                console.log('Raw response text:', rawText);
+                const data = JSON.parse(rawText);
+                console.log('Parsed response data:', data);
+                if (!data.error) {
+                    console.log('Login successful, redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 100);
+                } else {
+                    console.log('Validation errors detected, stopping redirection.');
+                }
+            } catch (error) {
+                console.error('Error parsing JSON response:', error);
+            }
+        }
+        console.log('Document cookies after login:', document.cookie);
+    });
+    loginUsername.addEventListener('input', function () {
+        if (lastServerUsernameError) {
+            // Clear server error and resume aggressive validation
+            loginUsernameError.classList.add('hidden');
+            lastServerUsernameError = '';
+            loginAggressive = true;
+        }
+    });
+    loginUsername.addEventListener('keyup', function () {
+        if (loginAggressive) {
+            const error = validateUsername(loginUsername.value);
+            if (error) {
+                loginUsernameError.textContent = error;
+                loginUsernameError.classList.remove('hidden');
+            } else {
+                loginUsernameError.classList.add('hidden');
+            }
+        }
+    });
+
+    // Password strength logic
+    function passwordStrength(password) {
+        let score = 0;
+        if (password.length > 12) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        return score;
+    }
+    function passwordStrengthLabel(score) {
+        return [
+            'Foarte slabă',
+            'Slabă',
+            'Mediu',
+            'Puternică',
+            'Foarte puternică'
+        ][score - 1] || '';
+    }
+    const loginPassword = document.getElementById('parola');
+    const loginPasswordError = document.getElementById('login-password-error');
+    const loginPasswordStrength = document.getElementById('login-password-strength');
+    loginForm.addEventListener('submit', function (e) {
+        if (!loginPassword.value) {
+            e.preventDefault();
+            loginPasswordError.textContent = 'Parola este obligatorie.';
+            loginPasswordError.classList.remove('hidden');
+        } else {
+            loginPasswordError.classList.add('hidden');
+        }
+    });
+    loginPassword.addEventListener('input', function () {
+        const score = passwordStrength(loginPassword.value);
+        if (loginPassword.value) {
+            loginPasswordStrength.textContent = `Putere parolă: ${score}/5 (${passwordStrengthLabel(score)})`;
+        } else {
+            loginPasswordStrength.textContent = '';
+        }
     });
 </script>
 
