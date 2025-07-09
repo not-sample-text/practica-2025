@@ -14,37 +14,88 @@
         <div class="alert alert-primary text-center" role="alert">
             Bun venit, <strong>@username!</strong>
         </div>
+        
+        <div class="row">
+            
+            <!-- Container pentru utilizatori activi -->
+            <div class="col-md-4">
+                <h5>Utilizatori activi</h5>
+                <ul id="active-users" class="list-unstyled">
+                    <!-- Aici va fi lista utilizatorilor activi -->
+                </ul>
+            </div>
 
-        <div class="mb-3">
-            <input type="text" class="form-control" onkeyup="sendMessage(event)"
-                placeholder="Scrie un mesaj către ceilalți">
+            <!-- Container pentru mesaje -->
+            <div class="col-md-8">
+                <h5>Chat</h5>
+                <div class="mb-3">
+                    <input type="text" class="form-control" onkeyup="sendMessage(event)"
+                        placeholder="Scrie un mesaj către ceilalți">
+                </div>
+                <ul id="messages" class="list-unstyled"></ul>
+            </div>
+            
         </div>
-        <p>
-        <ul id="messages" class="list-unstyled"></ul>
-        </p>
 
     </div>
     <script>
         const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        
         ws.onmessage = function (event) {
             console.log(`Received from server: ${event.data}`);
-            const [token, message] = event.data.split('–');
-            const messagesList = document.getElementById('messages');
-            const newMessage = document.createElement('li');
-            const {username} = decodeJWTPayload(token);
-            const isCurentUser = document.cookie.includes('token=' + token);
-            if (isCurentUser) {
-                newMessage.className = 'text-success text-end';
-            } else {
-                newMessage.className = 'text-secondary';
+
+            const serverMessage = JSON.parse(event.data);
+
+            switch (serverMessage.type) {
+                case 'message':
+                    const {token, message} = serverMessage;
+                    // console.log(serverMessage.message);
+
+                    const messagesList = document.getElementById('messages');
+                    const newMessage = document.createElement('li');
+
+                    const {username} = decodeJWTPayload(token);
+                    // console.log(username);  
+                    const isCurentUser = document.cookie.includes('token=' + token);
+
+                    if (isCurentUser) {
+                        newMessage.className = 'text-success text-end';
+                    } else {
+                        newMessage.className = 'text-secondary';
+                    }
+                    
+                    newMessage.innerHTML = `<p><small class="text-muted"> <strong>${isCurentUser ? 'eu' : username}</strong></small><br/> ${message}</p>`;
+                    messagesList.appendChild(newMessage);
+                    break;
+
+                case 'usernames':
+                    const  {usernames} = serverMessage;
+                    
+                    const userList = document.getElementById('active-users'); 
+                    userList.innerHTML = ''; 
+                    // Populate the list with new usernames
+                    usernames.forEach(username => {
+                        const listItem = document.createElement('li'); 
+                        listItem.textContent = username; 
+                        userList.appendChild(listItem); 
+                    });
+                    
+                    break;
+
+                // Handle other message types as needed
+                default:
+                    console.warn('Unknown message type:', serverMessage.type);
+                    break;
             }
-            newMessage.innerHTML = `<p><small class="text-muted">${isCurentUser ? 'eu' : username}</small><br/> ${message}</p>`;
-            messagesList.appendChild(newMessage);
+
         };
+        
         ws.onopen = function () {
             console.log('WebSocket connection established');
         };
+
         sendMessage
+
         function sendMessage(event) {
             if (event.key === 'Enter') {
                 const message = event.target.value;
