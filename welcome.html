@@ -25,7 +25,7 @@
 
     </div>
     <script>
-        const ws = new WebSocket('ws://localhost:3000/ws');
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
         ws.onmessage = function (event) {
             console.log(`Received from server: ${event.data}`);
             const [token, message] = event.data.split('–');

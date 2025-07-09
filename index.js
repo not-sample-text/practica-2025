@@ -21,7 +21,7 @@ app.ws.use(route.all('/ws', function (ctx) {
     // the websocket is added to the context on `ctx.websocket`.
     const { username } = jwt.verify(ctx.cookies.get('token'), secretKey);
     clients.set(ctx.cookies.get('token'), ctx.websocket);
-
+    console.log(clients);
     ctx.websocket.send(`token–Hello ${username}, welcome to the WebSocket server!`);
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
@@ -63,5 +63,5 @@ app
     });
 
 
-app.listen(3000);
-console.log('http://localhost:3000');
+app.listen(80);
+console.log('http://localhost');
