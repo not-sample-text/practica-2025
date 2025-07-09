@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
+    "koa": "^3.0.0",
     "koa-route": "^4.0.1",
     "koa-websocket": "^7.0.0"
   }

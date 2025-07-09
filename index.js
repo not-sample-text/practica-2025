@@ -20,6 +20,7 @@ app.ws.use(route.all('/ws', function (ctx) {
     const token = ctx.cookies.get('token');
     const { username } = jwt.verify(token, secretKey);
     clients.set(token, ctx.websocket);
+    broadcastOnlineUsers();
     console.log(`Socket client «${token}» added`);
     // console.log(`WebSocket connections: ${clients.size}`);
     // clients.forEach((_, token) => console.log(`${jwt.verify(token, secretKey).username}`));
@@ -28,6 +29,8 @@ app.ws.use(route.all('/ws', function (ctx) {
         // do something with the message from client
         // console.log(`Received ws from client: ${message}`);
         // broadcast the message to all connected clients
+        clients.delete(token);
+        broadcastOnlineUsers();
         clients.forEach((client) => {
             if (client.readyState === client.OPEN) {
                 console.log(token);
@@ -64,6 +67,27 @@ app
         ctx.body = 'Hello World';
     });
 
+    function broadcastOnlineUsers() {
+    const onlineTokens = [...clients.keys()];
+    const onlineUsernames = onlineTokens.map(token => {
+        try {
+            return jwt.verify(token, secretKey).username;
+        } catch (e) {
+            return null;
+        }
+    }).filter(Boolean);
+
+    const message = JSON.stringify({
+        type: 'online-users',
+        users: onlineUsernames
+    });
+
+    clients.forEach((ws) => {
+        if (ws.readyState === ws.OPEN) {
+            ws.send(message);
+        }
+    });
+}
 
 app.listen(80);
 console.log('http://localhost');
