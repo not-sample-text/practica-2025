@@ -1,28 +1,169 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
-    <div class="container d-flex align-items-center justify-content-center min-vh-100">
-        <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
-            <h2 class="mb-4 text-center">Autentificare</h2>
-            <form id="loginForm" method="get" action="/login">
-                <div class="mb-3">
-                    <label for="nume" class="form-label">Nume</label>
-                    <input type="text" class="form-control" id="nume" name="username" placeholder="Nume" required>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light shadow-lg">
+        <div class="container-fluid d-flex justify-content-center w-100">
+            <div class="d-flex">
+                <h2>Games Hub</h2>
+            </div>
+            <div class="ms-auto"></div>
+            <div class="d-flex align-items-center">
+                <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal"
+                    data-bs-target="#loginModal">
+                    Login
+                </button>
+                <a href="#" class="btn btn-primary me-2">Sign Up</a>
+                <button id="toggleDarkMode" class="btn btn-secondary" type="button" title="Toggle dark mode">
+                    <span id="darkModeIcon" class="bi bi-moon"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    <!-- Main Content -->
+    <div class="container d-flex align-items-center justify-content-center flex-column min-vh-100">
+        <div>
+            <p class="fs-1">Top 5 Games</p>
+        </div>
+        <div>
+            <div class="row justify-content-center">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+                    <div class="card h-100">
+                        <img src="https://placehold.co/600x400" class="card-img-top" alt="Game 1">
+                        <div class="card-body">
+                            <h5 class="card-title">Game 1</h5>
+                            <p class="card-text">Description for Game 1.</p>
+                            <a href="#" class="btn btn-primary">Details</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="parola" class="form-label">Parolă</label>
-                    <input type="password" class="form-control" id="parola" name="password" placeholder="Parola" required>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+                    <div class="card h-100">
+                        <img src="https://placehold.co/600x400" class="card-img-top" alt="Game 2">
+                        <div class="card-body">
+                            <h5 class="card-title">Game 2</h5>
+                            <p class="card-text">Description for Game 2.</p>
+                            <a href="#" class="btn btn-primary">Details</a>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Conectare</button>
-            </form>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+                    <div class="card h-100">
+                        <img src="https://placehold.co/600x400" class="card-img-top" alt="Game 3">
+                        <div class="card-body">
+                            <h5 class="card-title">Game 3</h5>
+                            <p class="card-text">Description for Game 3.</p>
+                            <a href="#" class="btn btn-primary">Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+                    <div class="card h-100">
+                        <img src="https://placehold.co/600x400" class="card-img-top" alt="Game 4">
+                        <div class="card-body">
+                            <h5 class="card-title">Game 4</h5>
+                            <p class="card-text">Description for Game 4.</p>
+                            <a href="#" class="btn btn-primary">Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+                    <div class="card h-100">
+                        <img src="https://placehold.co/600x400" class="card-img-top" alt="Game 5">
+                        <div class="card-body">
+                            <h5 class="card-title">Game 5</h5>
+                            <p class="card-text">Description for Game 5.</p>
+                            <a href="#" class="btn btn-primary">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title w-100 text-center" id="loginModalLabel">Autentificare</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm" method="get" action="/login">
+                        <div class="mb-3">
+                            <label for="nume" class="form-label">Nume</label>
+                            <input type="text" class="form-control" id="nume" name="username" placeholder="Nume"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="parola" class="form-label">Parolă</label>
+                            <input type="password" class="form-control" id="parola" name="password" placeholder="Parola"
+                                required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Conectare</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Icons CDN for moon/sun icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script>
+        // Manual dark mode toggle using Bootstrap 5 classes only
+        const toggleBtn = document.getElementById('toggleDarkMode');
+        const body = document.body;
+        const navbar = document.querySelector('.navbar');
+        const cards = document.querySelectorAll('.card');
+        const modal = document.querySelector('.modal-content');
+        const icon = document.getElementById('darkModeIcon');
+
+        function setDarkMode(on) {
+            if (on) {
+                body.classList.remove('bg-light');
+                body.classList.add('bg-dark', 'text-white');
+                navbar.classList.remove('navbar-light');
+                navbar.classList.add('navbar-dark', 'bg-dark');
+                cards.forEach(card => {
+                    card.classList.add('bg-dark', 'text-white', 'border-light');
+                });
+                if (modal) modal.classList.add('bg-dark', 'text-white', 'border-light');
+                icon.classList.remove('bi-moon');
+                icon.classList.add('bi-sun');
+            } else {
+                body.classList.remove('bg-dark', 'text-white');
+                body.classList.add('bg-light');
+                navbar.classList.remove('navbar-dark', 'bg-dark');
+                navbar.classList.add('navbar-light');
+                cards.forEach(card => {
+                    card.classList.remove('bg-dark', 'text-white', 'border-light');
+                });
+                if (modal) modal.classList.remove('bg-dark', 'text-white', 'border-light');
+                icon.classList.remove('bi-sun');
+                icon.classList.add('bi-moon');
+            }
+            localStorage.setItem('darkMode', on ? '1' : '0');
+        }
+
+        // Load preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const darkPref = localStorage.getItem('darkMode') === '1';
+            setDarkMode(darkPref);
+        });
+
+        toggleBtn.addEventListener('click', () => {
+            const isDark = body.classList.contains('bg-dark');
+            setDarkMode(!isDark);
+        });
+    </script>
 </body>
+
 </html>
