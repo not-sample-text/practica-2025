@@ -1,81 +1,379 @@
 <!DOCTYPE html>
 <html lang="ro">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Bun venit!</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
 
-<body class="bg-light">
+  <body class="bg-light">
     <div class="container py-5">
-        <!-- Mesaj de bun venit -->
-        <div class="alert alert-primary text-center" role="alert">
-            Bun venit, <strong>@username!</strong>
-        </div>
-
-        <div class="mb-3">
-            <input type="text" class="form-control" onkeyup="sendMessage(event)"
-                placeholder="Scrie un mesaj către ceilalți">
-        </div>
-        <p>
-        <ul id="messages" class="list-unstyled"></ul>
-        </p>
-
+      <!-- Mesaj de bun venit -->
+      <div class="alert alert-primary text-center" role="alert">
+        Bun venit, <strong>@username!</strong>
+      </div>
+      <div
+        id="currentRoomButtonContainer"
+        class="text-center mb-3"
+        style="display: none"
+      >
+        <button
+          id="currentRoomBtn"
+          class="btn btn-info btn-lg"
+          disabled
+        ></button>
+      </div>
     </div>
+
+    <button
+      id="openChatBtn"
+      class="btn btn-primary position-fixed"
+      style="bottom: 24px; left: 24px; z-index: 1050"
+    >
+      Chat
+    </button>
+    <button
+      class="btn btn-outline-danger position-fixed"
+      id="logoutBtn"
+      style="bottom: 24px; right: 24px; z-index: 1050"
+    >
+      Deconectare
+    </button>
+    <button
+      id="createRoomBtn"
+      class="btn btn-success position-fixed"
+      style="bottom: 80px; left: 24px; z-index: 1050"
+    >
+      Creează cameră
+    </button>
+    <div
+      id="chatBox"
+      class="card shadow position-fixed"
+      style="
+        bottom: 80px;
+        left: 24px;
+        width: 320px;
+        display: none;
+        z-index: 1060;
+      "
+    >
+      <div
+        class="card-header d-flex justify-content-between align-items-center p-2"
+      >
+        <span>Chat multiplayer</span>
+        <button id="closeChatBtn" class="btn btn-sm btn-outline-secondary">
+          &times;
+        </button>
+      </div>
+      <div
+        class="card-body p-2 d-flex flex-column"
+        style="height: 250px; overflow-y: auto; gap: 0"
+      >
+        <ul
+          id="messages"
+          class="list-unstyled mb-2 flex-grow-1"
+          style="max-height: 180px; overflow-y: auto"
+        ></ul>
+        <input
+          type="text"
+          class="form-control mt-2"
+          id="chatInput"
+          placeholder="Scrie un mesaj către ceilalți"
+          style="margin-top: auto"
+        />
+      </div>
+    </div>
+    <div
+      class="position-fixed"
+      id="roomsListContainer"
+      style="top: 24px; left: 24px; z-index: 1100; min-width: 200px"
+    >
+      <h6>Camere active:</h6>
+      <ul id="roomsList" class="list-group mb-2"></ul>
+    </div>
+    <div
+      class="position-fixed"
+      id="roomUsersContainer"
+      style="top: 24px; right: 24px; z-index: 1100; min-width: 200px"
+    >
+      <h6 id="currentRoomTitle">Nu ești în nicio cameră</h6>
+      <ul id="roomUsers" class="list-group mb-2"></ul>
+      <button
+        id="leaveRoomBtn"
+        class="btn btn-sm btn-outline-danger w-100"
+        style="display: none"
+      >
+        Ieși din cameră
+      </button>
+    </div>
+
+    <!-- Modal creare cameră -->
+    <div
+      class="modal fade"
+      id="createRoomModal"
+      tabindex="-1"
+      aria-labelledby="createRoomModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createRoomModalLabel">
+              Creează cameră nouă
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Închide"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="text"
+              id="newRoomName"
+              class="form-control"
+              placeholder="Nume cameră"
+              autofocus
+            />
+            <div
+              id="roomError"
+              class="text-danger small mt-2"
+              style="display: none"
+            ></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Anulează
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              id="confirmCreateRoom"
+            >
+              Creează
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const ws = new WebSocket(`ws://${window.location.host}/ws`);
-        ws.onmessage = function (event) {
-            console.log(`Received from server: ${event.data}`);
-            const [token, message] = event.data.split('–');
-            const messagesList = document.getElementById('messages');
-            const newMessage = document.createElement('li');
-            const {username} = decodeJWTPayload(token);
-            const isCurentUser = document.cookie.includes('token=' + token);
+      let currentRoom = null;
+      let rooms = [];
+      const ws = new WebSocket(`ws://${window.location.host}/ws`);
+      function renderRooms() {
+        const list = document.getElementById("roomsList");
+        list.innerHTML = "";
+        rooms.forEach((room) => {
+          const li = document.createElement("li");
+          li.className =
+            "list-group-item list-group-item-action" +
+            (currentRoom === room ? " active" : "");
+          li.textContent = room;
+          li.style.cursor = "pointer";
+          li.onclick = function () {
+            currentRoom = room;
+            ws.send(JSON.stringify({ type: "room-join", room }));
+            renderRooms();
+          };
+          list.appendChild(li);
+        });
+      }
+      function renderRoomUsers(users) {
+        const list = document.getElementById("roomUsers");
+        list.innerHTML = "";
+        users.forEach((user) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item";
+          li.textContent = user;
+          list.appendChild(li);
+        });
+        // Afișează numele camerei curente și butonul de ieșire doar dacă ești într-o cameră
+        const title = document.getElementById("currentRoomTitle");
+        const leaveBtn = document.getElementById("leaveRoomBtn");
+        const roomBtnContainer = document.getElementById(
+          "currentRoomButtonContainer"
+        );
+        const roomBtn = document.getElementById("currentRoomBtn");
+        if (currentRoom) {
+          title.textContent = `Camera curentă: ${currentRoom}`;
+          leaveBtn.style.display = "block";
+          roomBtn.textContent = `Camera: ${currentRoom}`;
+          roomBtnContainer.style.display = "block";
+        } else {
+          title.textContent = "Nu ești în nicio cameră";
+          leaveBtn.style.display = "none";
+          roomBtnContainer.style.display = "none";
+        }
+      }
+      // Modal Bootstrap pentru creare cameră
+      const createRoomModal = new bootstrap.Modal(
+        document.getElementById("createRoomModal")
+      );
+      document
+        .getElementById("createRoomBtn")
+        .addEventListener("click", function () {
+          document.getElementById("newRoomName").value = "";
+          document.getElementById("roomError").style.display = "none";
+          createRoomModal.show();
+          setTimeout(() => document.getElementById("newRoomName").focus(), 300);
+        });
+      document
+        .getElementById("confirmCreateRoom")
+        .addEventListener("click", function () {
+          const room = document.getElementById("newRoomName").value.trim();
+          const errorDiv = document.getElementById("roomError");
+          if (!room) {
+            errorDiv.textContent = "Introdu un nume pentru cameră!";
+            errorDiv.style.display = "block";
+            return;
+          }
+          if (rooms.includes(room)) {
+            errorDiv.textContent = "Camera există deja!";
+            errorDiv.style.display = "block";
+            return;
+          }
+          // Nu seta currentRoom aici! Așteaptă confirmarea de la server
+          ws.send(JSON.stringify({ type: "room-create", room }));
+          createRoomModal.hide();
+        });
+      document
+        .getElementById("newRoomName")
+        .addEventListener("keyup", function (e) {
+          if (e.key === "Enter") {
+            document.getElementById("confirmCreateRoom").click();
+          }
+        });
+      document
+        .getElementById("leaveRoomBtn")
+        .addEventListener("click", function () {
+          ws.send(JSON.stringify({ type: "room-leave" }));
+          currentRoom = null;
+          renderRooms();
+          renderRoomUsers([]);
+        });
+      // Ascultă lista de camere și useri de la server
+      ws.addEventListener("message", function (event) {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "room-list") {
+            rooms = data.rooms;
+            renderRooms();
+            return;
+          }
+          if (data.type === "room-users") {
+            // Setează camera curentă doar dacă există utilizatori (ești într-o cameră)
+            if (data.users && data.users.length > 0) {
+              // Găsește camera în care ești (cea în care ești singur sau cu alții)
+              const myToken = getCookie("token");
+              // Caută camera în care te afli (din rooms și userRooms)
+              // Dar pe client nu știm sigur, deci păstrăm currentRoom dacă e deja setat, altfel nu-l schimbăm
+              // Alternativ, poți trimite și numele camerei din server la room-users
+            }
+            // Afișează utilizatorii și camera curentă
+            renderRoomUsers(data.users, currentRoom);
+            return;
+          }
+        } catch (e) {}
+        try {
+          const [token, message] = event.data.split("–");
+          if (!message) return;
+          const messagesList = document.getElementById("messages");
+          const newMessage = document.createElement("li");
+          const payload = decodeJWTPayload(token);
+          const username =
+            payload && payload.username ? payload.username : null;
+          const myToken = getCookie("token");
+          const isCurentUser = myToken === token;
+          if (username) {
             if (isCurentUser) {
-                newMessage.className = 'text-success text-end';
+              newMessage.className = "text-success text-end";
             } else {
-                newMessage.className = 'text-secondary';
+              newMessage.className = "text-secondary";
             }
-            newMessage.innerHTML = `<p><small class="text-muted">${isCurentUser ? 'eu' : username}</small><br/> ${message}</p>`;
-            messagesList.appendChild(newMessage);
-        };
-        ws.onopen = function () {
-            console.log('WebSocket connection established');
-        };
-        sendMessage
-        function sendMessage(event) {
-            if (event.key === 'Enter') {
-                const message = event.target.value;
+            newMessage.innerHTML = `<p><small class="text-muted">${
+              isCurentUser ? "eu" : username
+            }</small><br/> ${message}</p>`;
+          } else {
+            newMessage.className = "text-info text-center";
+            newMessage.innerHTML = `<p>${message}</p>`;
+          }
+          messagesList.appendChild(newMessage);
+          messagesList.scrollTop = messagesList.scrollHeight;
+        } catch (e) {}
+      });
+      ws.onopen = function () {
+        // WebSocket ready
+      };
+      // Chat open/close logic
+      const openChatBtn = document.getElementById("openChatBtn");
+      const chatBox = document.getElementById("chatBox");
+      const closeChatBtn = document.getElementById("closeChatBtn");
+      openChatBtn.addEventListener("click", () => {
+        chatBox.style.display = "block";
+        document.getElementById("chatInput").focus();
+      });
+      closeChatBtn.addEventListener("click", () => {
+        chatBox.style.display = "none";
+      });
+      // Trimitere mesaj doar din inputul din chatBox
+      document
+        .getElementById("chatInput")
+        .addEventListener("keyup", function (event) {
+          if (event.key === "Enter") {
+            const message = event.target.value.trim();
+            // Nu trimite JSON ca mesaj de chat (ignoră spații, orice mesaj care începe cu {)
+            if (message.length > 0) {
+              if (/^\s*\{[\s\S]*\}\s*$/.test(message)) {
+                alert("Nu poți trimite JSON ca mesaj de chat!");
+              } else {
                 ws.send(message);
-                event.target.value = ''; // Clear the input field
+              }
             }
+            event.target.value = "";
+          }
+        });
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", function () {
+          document.cookie =
+            "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/index.html";
+        });
+      // Utilitar pentru extragere token din cookie
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return "";
+      }
+      function decodeJWTPayload(token) {
+        try {
+          const parts = token.split(".");
+          if (parts.length !== 3) return "";
+          const base64Url = parts[1];
+          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+              .join("")
+          );
+          return JSON.parse(jsonPayload);
+        } catch (e) {
+          return "";
         }
-
-        function decodeJWTPayload(token) {
-            try {
-                const parts = token.split('.');
-                if (parts.length !== 3) return '';
-
-                const base64Url = parts[1];
-                const base64 = base64Url
-                    .replace(/-/g, '+')
-                    .replace(/_/g, '/');
-
-                const jsonPayload = decodeURIComponent(
-                    atob(base64)
-                        .split('')
-                        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                        .join('')
-                );
-
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                return '';
-            }
-        }
+      }
     </script>
-</body>
-
+  </body>
 </html>
