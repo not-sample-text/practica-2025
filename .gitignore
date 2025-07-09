@@ -1,5 +1,4 @@
 package-lock.json
 node_modules
 .DS_Store
-dist/
-main branch/
+dist/output.css

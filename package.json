@@ -1,9 +1,9 @@
 {
 	"name": "practica2025",
 	"version": "1.0.0",
-	"main": "index.js",
+	"main": "server.js",
 	"scripts": {
-		"start": "node index.js",
+		"start": "node server.js",
 		"build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
 	},
 	"author": "",

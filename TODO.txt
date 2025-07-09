@@ -1,0 +1,48 @@
+# TODO - Practica 2025 Project
+
+## Core Functionality
+• Add user registration/signup functionality (currently only login modal exists)
+• Implement user session management and logout functionality  
+• Add proper user validation and error handling for authentication
+• Create user database/storage system (currently using JWT but no persistence)
+• Implement proper password hashing and security measures
+
+## Frontend Features
+• Complete the signup modal functionality in index.html
+• Add form validation and user feedback for login/signup forms
+• Implement responsive design improvements for mobile devices
+• Add loading states and better UX during authentication
+• Create user profile management features
+• Add chat history persistence and message storage
+
+## Backend Improvements  
+• Add proper database integration (SQLite, MongoDB, or PostgreSQL)
+• Implement rate limiting for API endpoints and chat messages
+• Add user roles and permissions system
+• Create proper error logging and monitoring
+• Add input sanitization and XSS protection
+• Implement HTTPS and security headers
+
+## Chat Features
+• Add private messaging between users
+• Implement chat rooms/channels functionality
+• Create emoji and reaction support
+• Add typing indicators for active users
+
+## Performance & Optimization
+• Implement message pagination for chat history  
+• Add WebSocket connection pooling and optimization
+• Optimize CSS bundle size and loading
+• Add service worker for offline functionality
+• Implement caching strategies for static assets
+• Add performance monitoring and analytics
+
+## Security Enhancements
+• Add CSRF protection
+• Implement proper session timeout handling
+• Add input validation on both client and server
+• Create security audit logging
+• Implement proper CORS configuration
+
+## Documentation
+• Update README with complete setup instructions

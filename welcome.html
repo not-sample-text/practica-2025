@@ -26,72 +26,7 @@
             </div>
         </div>
     </div>
-    <script>
-        const ws = new WebSocket(`ws://${window.location.host}/ws`);
-        ws.onmessage = function (event) {
-            const [token, message] = event.data.split('–');
-            const messagesList = document.getElementById('messages');
-            const newMessage = document.createElement('li');
-            let username;
-            let isCurentUser = false;
-            if (token === 'server') {
-                username = 'server';
-            } else {
-                const payload = decodeJWTPayload(token);
-                username = payload.username;
-                isCurentUser = document.cookie.includes('token=' + token);
-            }
-            // Timestamp
-            const now = new Date();
-            const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            // Message bubble style
-            let bubbleClass = '';
-            if (isCurentUser) {
-                bubbleClass = 'bg-stone-300 dark:bg-stone-600 text-stone-900 dark:text-stone-100 rounded-lg rounded-br-none px-3 py-2 inline-block max-w-[80%] ml-auto relative border border-stone-400 dark:border-stone-500';
-            } else if (username === 'server') {
-                bubbleClass = 'bg-indigo-200 dark:bg-indigo-700 text-stone-900 dark:text-stone-100 rounded-lg px-3 py-2 inline-block max-w-[80%] mx-auto relative';
-            } else {
-                bubbleClass = 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-lg rounded-bl-none px-3 py-2 inline-block max-w-[80%] mr-auto relative border border-stone-200 dark:border-stone-600';
-            }
-            newMessage.className = isCurentUser ? 'flex justify-end' : (username === 'server' ? 'flex justify-center' : 'flex justify-start');
-            newMessage.innerHTML = `
-        <div class="${bubbleClass}" style="position:relative;">
-            ${isCurentUser ? '' : `<span class='font-semibold text-xs'>${username}</span><br/>`}
-            <span>${message}</span>
-            <span class="block text-xs text-stone-400 text-right mt-1">${time}</span>
-        </div>
-    `;
-            messagesList.appendChild(newMessage);
-            messagesList.scrollTop = messagesList.scrollHeight;
-        };
-        ws.onopen = function () {
-            // Connection established
-        };
-        function sendMessage(event) {
-            if (event.key === 'Enter') {
-                const message = event.target.value;
-                ws.send(message);
-                event.target.value = '';
-            }
-        }
-        function decodeJWTPayload(token) {
-            try {
-                const parts = token.split('.');
-                if (parts.length !== 3) return '';
-                const base64Url = parts[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(
-                    atob(base64)
-                        .split('')
-                        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                        .join('')
-                );
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                return '';
-            }
-        }
-    </script>
 </body>
+<script src="/js/chat.js"></script>
 
 </html>
