@@ -21,7 +21,8 @@ app.ws.use(route.all('/ws', function (ctx) {
     // the websocket is added to the context on `ctx.websocket`.
     const { username } = jwt.verify(ctx.cookies.get('token'), secretKey);
     clients.set(ctx.cookies.get('token'), ctx.websocket);
-    console.log(clients);
+    console.log(`WebSocket connections: ${clients.size}`);
+    clients.forEach((_,token)=>console.log(`${jwt.verify(token, secretKey).username}`));
     ctx.websocket.send(`token–Hello ${username}, welcome to the WebSocket server!`);
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
@@ -37,7 +38,7 @@ app.ws.use(route.all('/ws', function (ctx) {
 
 app
     .use(async (ctx, next) => {
-        console.log(`Request URL: ${ctx.url}`);
+        // console.log(`Request URL: ${ctx.url}`);
         if (['/', '/index.html'].includes(ctx.url)) {
             const username = ctx.cookies.get('token') ? jwt.verify(ctx.cookies.get('token'), secretKey).username : null;
             const responseHtml = username ? './welcome.html' : './index.html';
