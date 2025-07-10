@@ -2,6 +2,7 @@
 
 const jwt = require("jsonwebtoken");
 const config = require("./config");
+const fs = require("fs/promises");
 
 const isValidToken = (token) => {
 	try {
@@ -39,7 +40,22 @@ const validateLoginInput = async (username, password) => {
 	if (!password || password.length < 8) {
 		errors.password = "Parola trebuie să aibă cel puțin 8 caractere.";
 	}
-
+	// veririficam daca avem sau nu deja acest username in baza de date
+	const users = JSON.parse(
+		await fs.readFile('users.json', "utf-8")
+	);
+	if (users[username]) {
+		// daca parola nu este corecta
+		if (users[username].password !== password) {
+			errors.password = "Parola incorectă.";
+		}
+	} else {
+		users[username] = {
+			username,
+			password
+		};
+		await fs.writeFile('users.json', JSON.stringify(users, null, 2));
+	}
 	return errors;
 };
 

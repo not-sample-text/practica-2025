@@ -4,10 +4,12 @@ const Koa = require("koa");
 const serve = require("koa-static");
 const route = require("koa-route");
 const websockify = require("koa-websocket");
+const bodyParser = require('koa-bodyparser');
 
-const config = require("./src/server/config");
-const handlers = require("./src/server/handlers");
-const WebSocketManager = require("./src/server/websocket");
+const config = require("./src/config");
+const handlers = require("./src/handlers");
+const WebSocketManager = require("./src/websocket");
+const routes = require("./src/routes");
 
 // Initialize application
 const app = websockify(new Koa());
@@ -21,6 +23,9 @@ app.ws.use(route.all("/ws", (ctx) => wsManager.handleConnection(ctx)));
 
 // HTTP routes
 app
+	.use(bodyParser())
+	.use(routes.routes())
+	.use(routes.allowedMethods())
 	.use(handlers.handleMainPage)
 	.use(handlers.handleLogin)
 	.use(handlers.handleDefault);
