@@ -102,6 +102,15 @@ app
 
         await next(); // Call the next middleware
     })
+    .use(async (ctx, next) => {
+        if(ctx.url.includes('/logout')) {
+            const content = fs.readFileSync('./index.html', 'utf-8');
+            ctx.cookies.set('token', '', option);
+            return ctx.body = content;
+        }
+
+        await next();
+    })
     .use(async ctx => {
         ctx.body = 'Hello World';
     });

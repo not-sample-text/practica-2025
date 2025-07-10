@@ -11,12 +11,32 @@
 <body class="bg-light">
     <div class="container py-5">
         <!-- Mesaj de bun venit -->
-        <div class="alert alert-primary text-center" role="alert">
-            Bun venit, <strong>@username!</strong>
+        <!-- <div class="row">
+            <div class="alert alert-primary text-center" role="alert">
+                Bun venit, <strong>@username!</strong>
+            </div>
+            <div class="alert alert-danger text-center" role="alert">
+                <a href="">Log out</a>
+            </div>
+        </div> -->
+
+        <div class="row align-items-center">
+            <!-- Welcome message: takes up most of the row -->
+            <div class="col-md-10 col-9">
+                <div class="alert alert-primary mb-4 text-center" role="alert">
+                    Bun venit, <strong>@username!</strong>
+                </div>
+            </div>
+
+            <!-- Logout link: smaller column -->
+            <div class="col-md-2 col-3 text-end">
+                <a href="/logout" class="btn btn-danger btn-md">Log out</a>
+            </div>
         </div>
-        
+
+
         <div class="row">
-            
+
             <!-- Container pentru utilizatori activi -->
             <div class="col-md-4">
                 <h5>Utilizatori activi</h5>
@@ -34,13 +54,13 @@
                 </div>
                 <ul id="messages" class="list-unstyled"></ul>
             </div>
-            
+
         </div>
 
     </div>
     <script>
         const ws = new WebSocket(`ws://${window.location.host}/ws`);
-        
+
         ws.onmessage = function (event) {
             console.log(`Received from server: ${event.data}`);
 
@@ -48,13 +68,13 @@
 
             switch (serverMessage.type) {
                 case 'message':
-                    const {token, message} = serverMessage;
+                    const { token, message } = serverMessage;
                     // console.log(serverMessage.message);
 
                     const messagesList = document.getElementById('messages');
                     const newMessage = document.createElement('li');
 
-                    const {username} = decodeJWTPayload(token);
+                    const { username } = decodeJWTPayload(token);
                     // console.log(username);  
                     const isCurentUser = document.cookie.includes('token=' + token);
 
@@ -63,23 +83,23 @@
                     } else {
                         newMessage.className = 'text-secondary';
                     }
-                    
+
                     newMessage.innerHTML = `<p><small class="text-muted"> <strong>${isCurentUser ? 'eu' : username}</strong></small><br/> ${message}</p>`;
                     messagesList.appendChild(newMessage);
                     break;
 
                 case 'usernames':
-                    const  {usernames} = serverMessage;
-                    
-                    const userList = document.getElementById('active-users'); 
-                    userList.innerHTML = ''; 
+                    const { usernames } = serverMessage;
+
+                    const userList = document.getElementById('active-users');
+                    userList.innerHTML = '';
                     // Populate the list with new usernames
                     usernames.forEach(username => {
-                        const listItem = document.createElement('li'); 
-                        listItem.textContent = username; 
-                        userList.appendChild(listItem); 
+                        const listItem = document.createElement('li');
+                        listItem.textContent = username;
+                        userList.appendChild(listItem);
                     });
-                    
+
                     break;
 
                 // Handle other message types as needed
@@ -89,7 +109,7 @@
             }
 
         };
-        
+
         ws.onopen = function () {
             console.log('WebSocket connection established');
         };
