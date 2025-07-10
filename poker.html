@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Poker Multiplayer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  </head>
+  <body class="bg-dark text-light">
+    <div class="container py-4">
+      <h2 class="text-center mb-4">Poker Texas Hold'em</h2>
+      <div id="pokerState" class="mb-3"></div>
+      <div id="pokerHand" class="mb-3"></div>
+      <div id="pokerActions" class="d-flex gap-2 justify-content-center mb-3"></div>
+      <button class="btn btn-secondary" id="closeGameBtn">Închide jocul</button>
+    </div>
+    <script>
+      // Extrage numele camerei din URL
+      function getRoomFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('room') || null;
+      }
+      // Conectare la WebSocket (folosește același host ca aplicația principală)
+      const ws = new WebSocket(`ws://${window.location.host}/ws`);
+      let currentRoom = getRoomFromUrl();
+      let myName = '';
+      // Extrage numele din cookie/token (sau poți trimite ca parametru)
+      document.cookie.split(';').forEach(c => {
+        if (c.trim().startsWith('token=')) {
+          try {
+            const token = c.trim().split('=')[1];
+            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            myName = payload.username;
+          } catch {}
+        }
+      });
+      // Dacă avem room în URL, trimite automat join la cameră
+      ws.addEventListener('open', function() {
+        if (currentRoom) {
+          ws.send(JSON.stringify({ type: 'room-join', room: currentRoom }));
+        }
+      });
+      // Închide jocul pentru toți din cameră
+      document.getElementById('closeGameBtn').addEventListener('click', function() {
+        ws.send(JSON.stringify({ type: 'poker-exit' }));
+        // fallback local dacă ești singur
+        setTimeout(() => { window.location.href = '/'; }, 500);
+      });
+      // Primește stare poker de la server
+      ws.addEventListener('message', function(event) {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'poker-state') {
+            renderPokerUI(data.state, data.hand);
+          }
+          if (data.type === 'poker-exit') {
+            window.location.href = '/';
+          }
+        } catch {}
+      });
+      function renderPokerUI(state, hand) {
+        if (!state) return;
+        let html = `<div><b>Stare:</b> ${state.state.toUpperCase()} | <b>Pot:</b> ${state.pot}</div>`;
+        html += `<div><b>Cărți pe masă:</b> ${state.community.map(c => `<span class='badge bg-secondary mx-1'>${c}</span>`).join(' ')}</div>`;
+        html += `<div><b>Jucători:</b></div><ul class='list-group mb-2'>`;
+        state.players.forEach((p, i) => {
+          html += `<li class='list-group-item${i === state.turn ? ' list-group-item-info' : ''}'>`;
+          html += `${p.username} (${p.chips} chips)`;
+          if (p.folded) html += ` <span class='text-danger'>(fold)</span>`;
+          if (p.allIn) html += ` <span class='text-warning'>(all-in)</span>`;
+          if (i === state.turn) html += ` <b>&larr; la mutare</b>`;
+          html += `</li>`;
+        });
+        html += `</ul>`;
+        document.getElementById("pokerState").innerHTML = html;
+        document.getElementById("pokerHand").innerHTML = hand && hand.length ? `<b>Mâna ta:</b> ${hand.map(c => `<span class='badge bg-primary mx-1'>${c}</span>`).join(' ')}` : '';
+        // Acțiuni
+        const actionsDiv = document.getElementById("pokerActions");
+        actionsDiv.innerHTML = "";
+        const myIdx = state.players.findIndex(p => p.username === myName);
+        if (myIdx === state.turn && !state.players[myIdx].folded && !state.players[myIdx].allIn && state.state !== 'showdown') {
+          const btnFold = document.createElement('button');
+          btnFold.className = 'btn btn-outline-danger btn-sm';
+          btnFold.textContent = 'Fold';
+          btnFold.onclick = () => ws.send(JSON.stringify({ type: 'poker-action', action: 'fold' }));
+          actionsDiv.appendChild(btnFold);
+          const btnCall = document.createElement('button');
+          btnCall.className = 'btn btn-outline-primary btn-sm';
+          btnCall.textContent = 'Call';
+          btnCall.onclick = () => ws.send(JSON.stringify({ type: 'poker-action', action: 'call' }));
+          actionsDiv.appendChild(btnCall);
+          const btnCheck = document.createElement('button');
+          btnCheck.className = 'btn btn-outline-secondary btn-sm';
+          btnCheck.textContent = 'Check';
+          btnCheck.onclick = () => ws.send(JSON.stringify({ type: 'poker-action', action: 'check' }));
+          actionsDiv.appendChild(btnCheck);
+          const btnAllin = document.createElement('button');
+          btnAllin.className = 'btn btn-warning btn-sm';
+          btnAllin.textContent = 'All-in';
+          btnAllin.onclick = () => ws.send(JSON.stringify({ type: 'poker-action', action: 'allin' }));
+          actionsDiv.appendChild(btnAllin);
+          const inputRaise = document.createElement('input');
+          inputRaise.type = 'number';
+          inputRaise.min = 1;
+          inputRaise.placeholder = 'Raise';
+          inputRaise.className = 'form-control form-control-sm';
+          inputRaise.style.width = '70px';
+          const btnRaise = document.createElement('button');
+          btnRaise.className = 'btn btn-success btn-sm';
+          btnRaise.textContent = 'Raise';
+          btnRaise.onclick = () => {
+            const val = parseInt(inputRaise.value);
+            if (val > 0) ws.send(JSON.stringify({ type: 'poker-action', action: 'raise', amount: val }));
+          };
+          actionsDiv.appendChild(inputRaise);
+          actionsDiv.appendChild(btnRaise);
+        }
+      }
+    </script>
+  </body>
+</html>

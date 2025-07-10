@@ -1,3 +1,12 @@
+    <!-- Poker UI -->
+    <div id="pokerGameUI" class="card shadow position-fixed" style="top: 120px; left: 50%; transform: translateX(-50%); min-width: 350px; max-width: 500px; display: none; z-index: 1200;">
+      <div class="card-header text-center">Poker Texas Hold'em</div>
+      <div class="card-body">
+        <div id="pokerState"></div>
+        <div id="pokerHand" class="my-2"></div>
+        <div id="pokerActions" class="d-flex gap-2 justify-content-center"></div>
+      </div>
+    </div>
 <!DOCTYPE html>
 <html lang="ro">
   <head>
@@ -13,7 +22,7 @@
   <body class="bg-light">
     <div class="container py-5">
       <!-- Mesaj de bun venit -->
-      <div class="alert alert-primary text-center" role="alert">
+      <div class="alert alert-primary text-center mx-auto" role="alert" style="margin-bottom: 8px; max-width: 500px;">
         Bun venit, <strong>@username!</strong>
       </div>
       <div
@@ -109,6 +118,20 @@
       >
         Ieși din cameră
       </button>
+      <button
+        id="deleteRoomBtn"
+        class="btn btn-sm btn-outline-warning w-100 mt-2"
+        style="display: none"
+      >
+        Șterge camera
+      </button>
+      <button
+        id="startPokerBtn"
+        class="btn btn-sm btn-success w-100 mt-2"
+        style="display: none"
+      >
+        Începe jocul Poker
+      </button>
     </div>
 
     <!-- Modal creare cameră -->
@@ -174,6 +197,11 @@
       function renderRooms() {
         const list = document.getElementById("roomsList");
         list.innerHTML = "";
+        // Elimină camera curentă dacă nu mai există în rooms
+        if (currentRoom && !rooms.includes(currentRoom)) {
+          currentRoom = null;
+          renderRoomUsers([]);
+        }
         rooms.forEach((room) => {
           const li = document.createElement("li");
           li.className =
@@ -201,6 +229,8 @@
         // Afișează numele camerei curente și butonul de ieșire doar dacă ești într-o cameră
         const title = document.getElementById("currentRoomTitle");
         const leaveBtn = document.getElementById("leaveRoomBtn");
+        const deleteBtn = document.getElementById("deleteRoomBtn");
+        const startBtn = document.getElementById("startPokerBtn");
         const roomBtnContainer = document.getElementById(
           "currentRoomButtonContainer"
         );
@@ -208,14 +238,45 @@
         if (currentRoom) {
           title.textContent = `Camera curentă: ${currentRoom}`;
           leaveBtn.style.display = "block";
+          deleteBtn.style.display = "block";
+          startBtn.style.display = "block";
           roomBtn.textContent = `Camera: ${currentRoom}`;
           roomBtnContainer.style.display = "block";
         } else {
           title.textContent = "Nu ești în nicio cameră";
           leaveBtn.style.display = "none";
+          deleteBtn.style.display = "none";
+          startBtn.style.display = "none";
           roomBtnContainer.style.display = "none";
         }
       }
+      // Buton pentru start joc poker
+      document.getElementById("startPokerBtn").addEventListener("click", function () {
+        if (!currentRoom) return;
+        ws.send(JSON.stringify({ type: "poker-start", room: currentRoom }));
+        // Ascunde butonul de start poker și butonul de intrare în cameră (dacă există)
+        document.getElementById("startPokerBtn").style.display = "none";
+        const roomBtnContainer = document.getElementById("currentRoomButtonContainer");
+        if (roomBtnContainer) roomBtnContainer.style.display = "none";
+      });
+      // Ascultă redirect către poker.html de la server
+      ws.addEventListener("message", function (event) {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "poker-started" && data.room) {
+            window.location.href = `poker.html?room=${encodeURIComponent(data.room)}`;
+          }
+        } catch {}
+      });
+      // Buton pentru ștergere cameră
+      document.getElementById("deleteRoomBtn").addEventListener("click", function () {
+        if (!currentRoom) return;
+        ws.send(JSON.stringify({ type: "room-delete", room: currentRoom }));
+        // Nu reseta local rooms aici, așteaptă actualizarea de la server
+        currentRoom = null;
+        // Nu apela renderRooms() aici, va fi apelat la ws message cu room-list
+        renderRoomUsers([]);
+      });
       // Modal Bootstrap pentru creare cameră
       const createRoomModal = new bootstrap.Modal(
         document.getElementById("createRoomModal")
@@ -268,17 +329,25 @@
           const data = JSON.parse(event.data);
           if (data.type === "room-list") {
             rooms = data.rooms;
+            // Dacă camera curentă a fost ștearsă, ieși din ea
+            if (currentRoom && !rooms.includes(currentRoom)) {
+              currentRoom = null;
+              renderRoomUsers([]);
+            }
             renderRooms();
             return;
           }
           if (data.type === "room-users") {
-            // Setează camera curentă doar dacă există utilizatori (ești într-o cameră)
+            // Dacă tocmai am creat sau am intrat într-o cameră, setează currentRoom dacă nu e deja setat
             if (data.users && data.users.length > 0) {
-              // Găsește camera în care ești (cea în care ești singur sau cu alții)
-              const myToken = getCookie("token");
-              // Caută camera în care te afli (din rooms și userRooms)
-              // Dar pe client nu știm sigur, deci păstrăm currentRoom dacă e deja setat, altfel nu-l schimbăm
-              // Alternativ, poți trimite și numele camerei din server la room-users
+              // Caută camera în care ești: dacă ești singur în cameră, e camera unde ești tu
+              // Dacă tocmai ai creat camera, e ultima din rooms
+              if (!currentRoom) {
+                // presupunem că e ultima cameră creată
+                if (rooms.length > 0) {
+                  currentRoom = rooms[rooms.length - 1];
+                }
+              }
             }
             // Afișează utilizatorii și camera curentă
             renderRoomUsers(data.users, currentRoom);
