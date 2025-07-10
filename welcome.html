@@ -21,6 +21,7 @@
         </div>
         <p>
         <ul id="messages" class="list-unstyled"></ul>
+        <ul id="active-users" class="list-group"></ul>
         </p>
 
     </div>
@@ -30,7 +31,9 @@
             console.log(`Received from server: ${event.data}`);
             const [token, message] = event.data.split('–');
             const messagesList = document.getElementById('messages');
+            const usersList = document.getElementById('active-users');
             const newMessage = document.createElement('li');
+            const newUser = document.createElement('li');
             const {username} = decodeJWTPayload(token);
             const isCurentUser = document.cookie.includes('token=' + token);
             if (isCurentUser) {
@@ -39,6 +42,11 @@
                 newMessage.className = 'text-secondary';
             }
             newMessage.innerHTML = `<p><small class="text-muted">${isCurentUser ? 'eu' : username}</small><br/> ${message}</p>`;
+            newUser.innerHTML = `<p class="text-primary">${username}</p>`;
+            // Add user to the active users list if not already present
+            if (!Array.from(usersList.children).some(li => li.textContent === username)) {
+                usersList.appendChild(newUser);
+            }
             messagesList.appendChild(newMessage);
         };
         ws.onopen = function () {

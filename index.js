@@ -35,6 +35,7 @@ app.ws.use(route.all('/ws', function (ctx) {
             }
         });
     });
+    //
 }));
 
 app
