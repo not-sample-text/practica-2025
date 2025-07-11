@@ -39,7 +39,21 @@ const Header = ({ onLogout }) => {
 		};
 
 		websocket.onmessage = (event) => {
-			const message = JSON.parse(event.data);
+			// Split the received data: "token–messagetext"
+			const [senderToken, messageText] = event.data.split("–");
+
+			// Decode sender's username from their token
+			const senderData = decodeJWTPayload(senderToken);
+			const senderUsername = senderData?.username || "Unknown";
+
+			// Create complete message object
+			const message = {
+				username: senderUsername, // <- sender's username, not yours!
+				text: messageText,
+				timestamp: new Date().toISOString()
+			};
+
+			// Add to messages
 			setMessages((prev) => [...prev, message]);
 		};
 
@@ -61,6 +75,8 @@ const Header = ({ onLogout }) => {
 					throw new Error("Deconectare eșuată.");
 				}
 				onLogout(null);
+				document.cookie =
+					"token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 			})
 			.catch((error) => {
 				console.error("Eroare la deconectare:", error);
@@ -69,14 +85,8 @@ const Header = ({ onLogout }) => {
 
 	const sendMessage = (e) => {
 		if (e.key === "Enter" && messageInput.trim()) {
-			const message = {
-				username: token?.username || "Unknown",
-				text: messageInput.trim(),
-				timestamp: new Date().toISOString()
-			};
-
 			if (ws && ws.readyState === WebSocket.OPEN) {
-				ws.send(JSON.stringify(message));
+				ws.send(messageInput.trim());
 			}
 
 			setMessageInput("");
@@ -84,14 +94,16 @@ const Header = ({ onLogout }) => {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-50 dark:bg-stone-900">
 			{/* Navbar */}
-			<nav className="bg-white shadow-sm border-b">
+			<nav className="bg-white dark:bg-stone-800 shadow-sm border-b dark:border-stone-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex justify-between items-center h-16">
-						<h2 className="text-xl font-bold text-gray-900">Games Hub</h2>
+						<h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+							Games Hub
+						</h2>
 						<div className="flex items-center space-x-4">
-							<span className="text-sm text-gray-700">
+							<span className="text-sm text-gray-700 dark:text-gray-300">
 								Salut,{" "}
 								<span className="font-medium">
 									{token?.username || "Unknown"}
@@ -99,7 +111,7 @@ const Header = ({ onLogout }) => {
 								!
 							</span>
 							<button
-								className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+								className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-stone-700 border border-gray-300 dark:border-stone-600 rounded-md hover:bg-gray-50 dark:hover:bg-stone-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 								onClick={logOut}>
 								Deconectare
 							</button>
@@ -111,47 +123,87 @@ const Header = ({ onLogout }) => {
 			{/* Main Content */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				{/* Welcome Message */}
-				<div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-					<h1 className="text-2xl font-bold text-gray-900">
+				<div className="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 mb-8">
+					<h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
 						Bun venit,{" "}
-						<span className="text-blue-600">
+						<span className="text-indigo-600 dark:text-indigo-400">
 							{token?.username || "Unknown"}
 						</span>
 						!
 					</h1>
-					<p className="text-gray-600 mt-2">
+					<p className="text-gray-600 dark:text-gray-300 mt-2">
 						Bucură-te de experiența de gaming și conectează-te cu prietenii!
 					</p>
 				</div>
 
 				{/* Main content area - can be expanded later */}
-				<div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-					<h2 className="text-lg font-semibold text-gray-900 mb-4">
+				<div className="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 mb-8">
+					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
 						Game Center
 					</h2>
-					<p className="text-gray-600">Game content will go here</p>
+					<p className="text-gray-600 dark:text-gray-300">
+						Game content will go here
+					</p>
 				</div>
 			</div>
 
 			{/* Chat UI */}
-			<div className="fixed bottom-0 right-0 w-80 bg-white border-l border-t shadow-lg">
-				<div className="bg-gray-50 px-4 py-3 border-b">
-					<h3 className="text-sm font-medium text-gray-900">Chat</h3>
+
+			<div className="fixed bottom-0 right-0 w-80 bg-white dark:bg-stone-800 border-l border-t dark:border-stone-700 shadow-lg">
+				<div className="bg-gray-50 dark:bg-stone-700 px-4 py-3 border-b dark:border-stone-600">
+					<h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+						Chat
+					</h3>
 				</div>
 				<div className="h-60 overflow-y-auto p-4 space-y-2">
-					{messages.map((msg, index) => (
-						<div
-							key={index}
-							className="bg-gray-100 rounded-lg p-3">
-							<span className="font-medium text-gray-900">{msg.username}:</span>
-							<span className="text-gray-700 ml-2">{msg.text}</span>
-						</div>
-					))}
+					{messages.map((msg, index) => {
+						const isMyMessage = msg.username === token?.username;
+
+						return (
+							<div
+								key={index}
+								className={`flex ${
+									isMyMessage ? "justify-end" : "justify-start"
+								}`}>
+								<div
+									className={`rounded-lg p-3 max-w-xs ${
+										isMyMessage
+											? "bg-blue-500 text-white rounded-br-none"
+											: "bg-gray-100 dark:bg-stone-700 rounded-bl-none"
+									}`}>
+									{!isMyMessage && (
+										<div className="font-medium text-xs text-gray-900 dark:text-gray-100 mb-1">
+											{msg.username}
+										</div>
+									)}
+									<div
+										className={`${
+											isMyMessage
+												? "text-white"
+												: "text-gray-700 dark:text-gray-300"
+										} break-words max-w-60`}>
+										{msg.text}
+									</div>
+									<div
+										className={`font-medium text-xs mt-1 ${
+											isMyMessage
+												? "text-blue-100 text-right"
+												: "text-gray-500 dark:text-gray-400 text-right"
+										}`}>
+										{new Date(msg.timestamp).toLocaleTimeString([], {
+											hour: "2-digit",
+											minute: "2-digit"
+										})}
+									</div>
+								</div>
+							</div>
+						);
+					})}
 				</div>
-				<div className="p-4 border-t">
+				<div className="p-4 border-t dark:border-stone-700">
 					<input
 						type="text"
-						className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
 						value={messageInput}
 						onChange={(e) => setMessageInput(e.target.value)}
 						onKeyUp={sendMessage}
