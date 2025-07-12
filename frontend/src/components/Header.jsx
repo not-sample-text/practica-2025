@@ -1,28 +1,10 @@
 import React from "react";
-const getTokenFormCookie = () => {
-  const match = document.cookie.match(/token=([^;]+)/);
-  return match ? match[1] : null;
-};
-const decodeJWTPayload = (token) => {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
+import { getTokenFromCookie } from "../helpers/getTokenFromCookie";
+import { decodeJWTPayload } from "../helpers/decodeJWTPayload";
+import { Link } from "react-router-dom";
 
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-};
 const Header = ({ onLogout }) => {
-  const [token] = React.useState(decodeJWTPayload(getTokenFormCookie()));
+  const [token] = React.useState(decodeJWTPayload(getTokenFromCookie()));
   const logOut = () => {
     fetch("/logout")
       .then((response) => {
@@ -45,9 +27,9 @@ const Header = ({ onLogout }) => {
       <ul>
         <li>
           <a href="">Salut, {token.username}</a>
-          <a href="" onClick={e => { e.preventDefault(); logOut(); }}>
-            Deconectare
-          </a>
+          <Link to="">
+            <button onClick={e => { e.preventDefault(); logOut(); }}>Deconectare</button>
+          </Link>
         </li>
       </ul>
     </nav>

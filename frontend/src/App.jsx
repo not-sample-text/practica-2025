@@ -1,17 +1,20 @@
 import "./App.css";
 import React from "react";
+import Starter from "./components/Starter";
 import Login from "./components/Login";
 import Header from "./components/Header";
-
-const getTokenFormCookie = () => {
-  const match = document.cookie.match(/token=([^;]+)/);
-  return match ? match[1] : null;
-};
+import { getTokenFromCookie } from "./helpers/getTokenFromCookie";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = React.useState(getTokenFormCookie());
+  const isLoggedIn = getTokenFromCookie();
 
-  return isLoggedIn ? <Header onLogout={setIsLoggedIn} /> : <Login onLogin={() => setIsLoggedIn(true)} />;
+  if(isLoggedIn){
+    window.location.href = '/dashboard';
+    return null;
+  }
+
+  return <Starter />
+
 }
 
 export default App;
