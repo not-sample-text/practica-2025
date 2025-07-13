@@ -33,37 +33,58 @@ const Login = ({ onLogin }) => {
       });
   };
 
+  const handleRegister = (e) => {
+    return;
+  };
+
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 320, margin: "0 auto" }}>
-      <h2>Autentificare</h2>
-      {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
-      <fieldset>
-        <label>
-          Utilizator
-          <input
-            name="utilizator"
-            placeholder="Utilizator"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Parolă
-          <input
-            type="password"
-            name="parola"
-            placeholder="Parolă"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-      </fieldset>
-      <button onClick={handleSubmit} type="submit">
-        Login
-      </button>
-    </form>
+    <div className="container">
+      <form onSubmit={handleSubmit} style={{ maxWidth: 320, margin: "0 auto" }}>
+        <h2>Autentificare</h2>
+        {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
+        <fieldset>
+          <label>
+            Utilizator
+            <input
+              name="utilizator"
+              placeholder="Utilizator"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={{ width: "100%" }}
+            />
+          </label>
+          <label>
+            Parolă
+            <input
+              type="password"
+              name="parola"
+              placeholder="Parolă"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ width: "100%" }}
+            />
+          </label>
+        </fieldset>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button
+            onClick={handleSubmit}
+            type="submit"
+            style={{ flex: 1, width: "100%" }}
+          >
+            Login
+          </button>
+          <button
+            onClick={handleRegister}
+            type="button"
+            style={{ flex: 1, width: "100%" }}
+          >
+            Register
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

@@ -36,21 +36,19 @@ const Header = ({ onLogout }) => {
       });
   };
   return (
-    <nav>
-      <ul>
-        <li>
+    <div className="container">
+      <nav style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <h2>Salut, {token.username}</h2>
+        <div>
           <strong>Joc extrem</strong>
-        </li>
-      </ul>
-      <ul>
-        <li>
-          <a href="">Salut, {token.username}</a>
+        </div>
+        <div>
           <a href="" onClick={e => { e.preventDefault(); logOut(); }}>
             Deconectare
           </a>
-        </li>
-      </ul>
-    </nav>
+        </div>
+      </nav>
+    </div>
   );
 };
 
