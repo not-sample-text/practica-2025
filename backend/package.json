@@ -1,17 +1,26 @@
 {
-  "name": "practica2025",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --watch index.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "jsonwebtoken": "^9.0.2",
-    "koa-route": "^4.0.1",
-    "koa-websocket": "^7.0.0"
-  }
+	"name": "practica2025",
+	"version": "1.0.0",
+	"main": "server.js",
+	"scripts": {
+		"start": "node --watch server.js",
+		"build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
+	},
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"@koa/router": "^13.1.1",
+		"@tailwindcss/cli": "^4.1.11",
+		"bad-words": "^4.0.0",
+		"cookie": "^1.0.2",
+		"jsonwebtoken": "^9.0.2",
+		"koa": "^3.0.0",
+		"koa-bodyparser": "^4.4.1",
+		"koa-route": "^3.2.0",
+		"koa-router": "^13.1.1",
+		"koa-static": "^5.0.0",
+		"koa-websocket": "^5.0.1",
+		"tailwindcss": "^4.1.11"
+	}
 }
