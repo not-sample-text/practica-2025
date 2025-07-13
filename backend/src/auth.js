@@ -65,9 +65,43 @@ const validateLoginInput = async (username, password) => {
 	return errors;
 };
 
+const validateRegistrationInput = async (username, password) => {
+	const { Filter } = await import("bad-words");
+	const filter = new Filter();
+	const errors = {};
+
+	if (!/^[\w]{3,20}$/.test(username || "")) {
+		errors.username =
+			"Numele de utilizator trebuie să aibă între 3 și 20 de caractere și să conțină doar litere, cifre și underscore.";
+	} else if (filter.isProfane(username)) {
+		errors.username = "Numele de utilizator conține cuvinte nepotrivite.";
+	}
+	if (!password || password.length < 8) {
+		errors.password = "Parola trebuie să aibă cel puțin 8 caractere.";
+	}
+	if (Object.keys(errors).length > 0) {
+		return errors;
+	}
+	// verificam daca avem sau nu deja acest username in baza de date
+	const users = JSON.parse(
+		await fs.readFile('users.json', "utf-8")
+	);
+	if (users[username]) {
+		errors.username = "Numele de utilizator deja există.";
+	} else {
+		users[username] = {
+			username,
+			password
+		};
+		await fs.writeFile('users.json', JSON.stringify(users, null, 2));
+	}
+	return errors;
+};
+
 module.exports = {
 	isValidToken,
 	getUsernameFromToken,
 	createToken,
-	validateLoginInput
+	validateLoginInput,
+	validateRegistrationInput
 };

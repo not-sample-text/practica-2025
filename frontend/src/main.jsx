@@ -4,6 +4,7 @@ import './index.css';
 import App from './App.jsx';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import Login from './components/Login.jsx';
+import Register from './components/Register.jsx';
 import Header from './components/Header.jsx';
 import { Link } from 'react-router-dom';
 import { getTokenFromCookie } from './helpers/getTokenFromCookie.js'
@@ -36,10 +37,11 @@ const router = createBrowserRouter([{
 {
   path: '/dashboard',
   element: <ProtectedRoute><Header onLogout={() => { clearCookie(); window.location.href = '/'; }} /></ProtectedRoute>,
-  // This is a placeholder for the dashboard component
-  // You can replace it with your actual dashboard component
-  // element: <Dashboard />
 },
+{
+  path: '/register',
+  element: <PublicRoute><Register /></PublicRoute>
+}
 ])
 
 createRoot(document.getElementById('root')).render(
