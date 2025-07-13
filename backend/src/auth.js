@@ -40,10 +40,16 @@ const validateLoginInput = async (username, password) => {
 	if (!password || password.length < 8) {
 		errors.password = "Parola trebuie să aibă cel puțin 8 caractere.";
 	}
-	// veririficam daca avem sau nu deja acest username in baza de date
+
+	if(Object.keys(errors).length > 0) {
+		return errors;
+	}
+
+	// verificam daca avem sau nu deja acest username in baza de date
 	const users = JSON.parse(
 		await fs.readFile('users.json', "utf-8")
 	);
+	
 	if (users[username]) {
 		// daca parola nu este corecta
 		if (users[username].password !== password) {

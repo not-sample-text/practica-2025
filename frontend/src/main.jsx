@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const isLoggedIn = getTokenFromCookie();
   if (isLoggedIn) {
-    return <Header onLogout={() => { clearCookie(); window.location.href = '/login'; }} />;
+    return <Header onLogout={() => { clearCookie(); window.location.href = '/'; }} />;
   }
   return children;
 };

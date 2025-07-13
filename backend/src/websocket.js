@@ -8,21 +8,35 @@ class WebSocketManager {
 	}
 
 	handleConnection(ctx) {
-		const token = ctx.cookies.get("token");
+		console.log("New WebSocket connection attempt");
 
-		if (!auth.isValidToken(token)) {
-			ctx.websocket.send("token–Invalid or expired token");
-			ctx.websocket.close();
+		const token = ctx.cookies.get("token")
+		console.log("WebSocket connection attempt with token:", token);
+
+		if(!auth.isValidToken(token)) {
+			console.log("Invalid token, closing connection.");
+			ctx.websocket.close(1008, "Invalid token");
 			return;
 		}
 
+		console.log("Valid token, proceeding with connection.");
 		this.clients.set(token, ctx.websocket);
+		
+		ctx.websocket.on("error", (error) => {
+			console.error("WebSocket server error:", error);
+			this.clients.delete(token);
+		});
+		ctx.websocket.on("open", () => {
+			console.log("WebSocket connection opened for token:", token);
+		});
 
 		ctx.websocket.on("message", (message) => {
+			console.log("Received message:", message, "from token:", token);
 			this.broadcastMessage(token, message);
 		});
 
 		ctx.websocket.on("close", () => {
+			console.log("WebSocket connection closed for token:", token);
 			this.clients.delete(token);
 		});
 	}
