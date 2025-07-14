@@ -41,6 +41,10 @@ const router = createBrowserRouter([{
 {
   path: '/register',
   element: <PublicRoute><Register /></PublicRoute>
+},
+{
+  path: '/lobby/:name',
+  element: <ProtectedRoute><Lobby name={name} onLeave={() => {window.location.href = '/dashboard'}} /></ProtectedRoute>
 }
 ])
 

@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CreateLobby from './CreateLobby';
+import LobbyListElement from './LobbyListElement';
 
-const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
+const Header = ({ onLogout, messages, sendMessage, connectionStatus, }) => {
   const [newMessage, setNewMessage] = useState('');
   const [username, setUsername] = useState('');
   const [isChatHidden, setIsChatHidden] = useState(false);
+  const [isCreatingLobby, setIsCreatingLobby] = useState(false);
+  const [lobbies, setLobbies] = useState([]);
   const messagesEndRef = useRef(null);
 
   // Get username from JWT token
@@ -46,6 +50,7 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
       setNewMessage('');
     }
   };
+  
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -68,6 +73,7 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
   };
 
   return (
+    <>
     <div style={{ 
       height: '100vh', 
       display: 'flex',
@@ -89,11 +95,11 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
         {/* Header */}
         <header style={{ 
           padding: '1rem 2rem', 
-          borderBottom: '1px solid #dee2e6',
+          borderBottom: '1px solid #00274dff',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#ffffff',
+          backgroundColor: '#0091ffff',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           minHeight: '70px'
         }}>
@@ -327,6 +333,52 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
         </button>
       </div>
     </div>
+    <div style={{ 
+      position: 'absolute',
+      top: '1rem',
+      right: '1rem',
+      zIndex: 1000,
+      backgroundColor: '#3f3f3fff',
+      padding: '0.5rem 1rem',
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      maxWidth: '300px',
+      width: '100%'
+    }}>
+      <button onClick={() => setIsCreatingLobby(true)}>Create Lobby</button>
+      {/* CreateLobby popup */}
+      {isCreatingLobby && <CreateLobby onCreateLobby={(name) => {
+          console.log("Lobby created:", name);
+          window.location.href = `/lobby/${name}`;
+          setIsCreatingLobby(false);
+          sendMessage({ type: 'lobby', name: name });
+        }} />}
+    </div>
+    <div style={{ 
+      position: 'absolute',
+      top: '1rem',
+      left: '1rem',
+      zIndex: 1000,
+      backgroundColor: '#3f3f3fff',
+      padding: '0.5rem 1rem',
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      maxWidth: '300px',
+      width: '100%'
+    }}>
+      <h3>Lobby List</h3>
+      {lobbies.length === 0 ? (
+        <p>No lobbies available.</p>
+      ) : (
+        lobbies.map((lobby, index) => (
+          <LobbyListElement key={index} lobby={lobby} onJoin={(id) => {
+            console.log("Joining lobby:", id);
+            window.location.href = `/lobby/${id}`;
+          }} />
+        ))
+      )}
+    </div>
+    </>
   );
 };
 

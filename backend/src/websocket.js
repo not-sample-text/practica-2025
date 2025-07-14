@@ -6,6 +6,7 @@ class WebSocketManager {
 
 	constructor() {
 		this.clients = new Map();
+        this.lobbies = new Map();
 	}
 
     handleConnection(ctx) {
@@ -41,6 +42,16 @@ class WebSocketManager {
 				case 'broadcast':
 					this.broadcastMessage(token, parsed);
 					break;
+                case 'lobby':
+                    if (!this.lobbies.has(parsed.name)) {
+                        this.lobbies.set(parsed.name, { name: parsed.name, players: [] });
+                    }
+                    const lobby = this.lobbies.get(parsed.name);
+                    if (!lobby.players.some(player => player.username === auth.getUsernameFromToken(token))) {
+                        lobby.players.push({ username: auth.getUsernameFromToken(token) });
+                    }
+                    this.sendLobbies();
+                    break;
 				default:
 					console.log(`Unknown message type: ${message}`);
 					return ctx.websocket.send(JSON.stringify({
@@ -58,6 +69,7 @@ class WebSocketManager {
 		});
 
 		this.sendUsernames();
+        this.sendLobbies();
 
 		ctx.websocket.on('close', () => {
 			console.log('Client disconnected');
@@ -86,6 +98,22 @@ class WebSocketManager {
 			}
 		})
 	}
+
+    sendLobbies() {
+        if (this.clients?.size === 0) return;
+        // const message = JSON.stringify({ type: 'lobbies', lobbies: this.lobbies });
+        const content = Array.from(this.lobbies.values()).map(lobby => ({
+            name: lobby.name,
+            players: lobby.players.map(player => player.username)
+        }));
+        console.log("Sending lobbies:", content);
+        // Send the lobbies to all connected clients
+        (this.clients).forEach((client) => {
+            if (client.readyState === client.OPEN) {
+                client.send(JSON.stringify({ type: 'lobbies', content }));
+            }
+        })
+    }
 }
 
 module.exports = WebSocketManager;
