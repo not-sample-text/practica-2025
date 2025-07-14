@@ -20,7 +20,7 @@ const parseRequestBody = (ctx) => {
 };
 
 const handleMainPage = async (ctx, next) => {
-	if (!["/", "/index.html"].includes(ctx.url)) {
+	if (!["/", "index.html"].includes(ctx.url)) {
 		await next();
 		return;
 	}

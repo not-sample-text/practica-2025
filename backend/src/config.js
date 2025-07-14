@@ -1,4 +1,5 @@
 // Server configuration and constants
+const path = require('path'); 
 
 module.exports = {
 	port: 3000,
@@ -10,7 +11,7 @@ module.exports = {
 		path: "/"
 	},
 	files: {
-		welcome: "./welcome.html",
-		index: "./index.html"
+		welcome: path.join(__dirname, '..', '..', 'frontend', 'welcome.html'),
+		index: path.join(__dirname, '..', '..', 'frontend', 'index.html')
 	}
 };

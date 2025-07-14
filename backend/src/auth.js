@@ -25,43 +25,55 @@ const createToken = (username) => {
 	return jwt.sign({ username }, config.secretKey, { expiresIn: "1h" });
 };
 
-const validateLoginInput = async (username, password) => {
-	const { Filter } = await import("bad-words");
-	const filter = new Filter();
+
+
+const registerUser = async (username, password) => {
+    const errors = {};
+    
+    if (!username || username.length < 3) { errors.username = "..."; }
+    if (!password || password.length < 6) { errors.password = "..."; }
+    if (Object.keys(errors).length > 0) {
+        return { errors };
+    }
+
+    try {
+        const fileContent = await fs.readFile('users.json', "utf-8");
+        const users = JSON.parse(fileContent);
+        if (users[username]) {
+            errors.username = "Utilizatorul există deja.";
+            return { errors };
+        }
+        users[username] = { username, password };
+
+        await fs.writeFile('users.json', JSON.stringify(users, null, 2));
+    
+        return { errors: {} };
+
+    } catch (e) {
+        errors.server = "A apărut o eroare internă pe server.";
+        return { errors };
+    }
+};
+const authenticateUser = async (username, password) => {
 	const errors = {};
+	const users = JSON.parse(await fs.readFile('users.json', "utf-8"));
+	if(!users[username]) {
+		errors.authenticateUser = "Utilizatorul nu exista.";
+		return { errors };
 
-	if (!/^[\w]{3,20}$/.test(username || "")) {
-		errors.username =
-			"Numele de utilizator trebuie să aibă între 3 și 20 de caractere și să conțină doar litere, cifre și underscore.";
-	} else if (filter.isProfane(username)) {
-		errors.username = "Numele de utilizator conține cuvinte nepotrivite.";
 	}
-
-	if (!password || password.length < 8) {
-		errors.password = "Parola trebuie să aibă cel puțin 8 caractere.";
+	if(users[username].password !== password) {
+		errors.authenticateUser = "Parola este incorecta.";
+		return { errors };
 	}
-	// veririficam daca avem sau nu deja acest username in baza de date
-	const users = JSON.parse(
-		await fs.readFile('users.json', "utf-8")
-	);
-	if (users[username]) {
-		// daca parola nu este corecta
-		if (users[username].password !== password) {
-			errors.password = "Parola incorectă.";
-		}
-	} else {
-		users[username] = {
-			username,
-			password
-		};
-		await fs.writeFile('users.json', JSON.stringify(users, null, 2));
-	}
-	return errors;
+	return { errors: {} };
 };
 
 module.exports = {
 	isValidToken,
 	getUsernameFromToken,
 	createToken,
-	validateLoginInput
+	registerUser,
+	authenticateUser
+
 };
