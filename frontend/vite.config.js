@@ -10,15 +10,14 @@ export default defineConfig({
         target: proxy,
         changeOrigin: true,
       },
-      '/logout': {
+      '/register': {
         target: proxy,
         changeOrigin: true,
       },
       '/ws': {
         target: proxy,
-        changeOrigin: true,
         ws: true,
-
+        changeOrigin: true,
       },
     },
   },  

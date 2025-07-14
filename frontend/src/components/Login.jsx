@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
-  const navigate = useNavigate();
-
+  const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -17,37 +16,50 @@ const Login = ({ onLogin }) => {
       return;
     }
 
-    fetch("/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    setLoading(true);
 
-      body: JSON.stringify({ username, password }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Autentificare eșuată. Verificați datele.");
-        }
-        return response.json();
-      })
-      .then(() => {
-        // onLogin();
-        navigate('../dashboard');
-      })
-      .catch((error) => {
-        setError(error.message);
+    try {
+      const endpoint = isRegister ? "/register" : "/login";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
       });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        onLogin(data.username || username);
+      } else {
+        setError(data.error?.general || "Autentificare eșuată. Verificați datele.");
+      }
+    } catch (setError) {
+      setError("Inregistrare eșuată. Încercați din nou.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsRegister(!isRegister);
+    setUsername("");
+    setPassword("");
+    setError("");
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 320, margin: "0 auto" }}>
-      <h2>Autentificare</h2>
+    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "0 auto", padding: "2rem" }}>
+      <h2>{isRegister ? "Înregistrare" : "Autentificare"}</h2>
+
       {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
-      <fieldset>
+
+      <fieldset style={{ border: "none", padding: 0 }}>
         <label>
           Utilizator
           <input
+            type="text"
             name="utilizator"
             placeholder="Utilizator"
             value={username}
@@ -55,6 +67,7 @@ const Login = ({ onLogin }) => {
             required
           />
         </label>
+        <br />
         <label>
           Parolă
           <input
@@ -67,9 +80,20 @@ const Login = ({ onLogin }) => {
           />
         </label>
       </fieldset>
-      <button onClick={handleSubmit} type="submit">
-        Login
+
+      <button type="submit" disabled={loading} style={{ marginTop: "1rem" }}>
+        {loading ? "Se încarcă..." : isRegister ? "Înregistrare" : "Login"}
       </button>
+
+      <div style={{ marginTop: "1rem", textAlign: "center" }}>
+        <button
+          type="button"
+          onClick={toggleMode}
+          style={{ background: "none", border: "none", color: "#646cff", textDecoration: "underline", cursor: "pointer" }}
+        >
+          {isRegister ? "Ai deja un cont? Autentificate" : "Nu ai cont? Înregistrează-te"}
+        </button>
+      </div>
     </form>
   );
 };
