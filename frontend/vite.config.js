@@ -10,6 +10,16 @@ export default defineConfig({
         target: proxy,
         changeOrigin: true,
       },
+      '/logout': {
+        target: proxy,
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: proxy,
+        changeOrigin: true,
+        ws: true,
+
+      },
     },
   },  
 })

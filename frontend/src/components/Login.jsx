@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
+  const navigate = useNavigate();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -8,15 +11,18 @@ const Login = ({ onLogin }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
+
     if (!username || !password) {
       setError("Toate câmpurile sunt obligatorii.");
       return;
     }
+
     fetch("/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+
       body: JSON.stringify({ username, password }),
     })
       .then((response) => {
@@ -26,7 +32,8 @@ const Login = ({ onLogin }) => {
         return response.json();
       })
       .then(() => {
-        onLogin();
+        // onLogin();
+        navigate('../dashboard');
       })
       .catch((error) => {
         setError(error.message);
