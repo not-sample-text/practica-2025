@@ -104,7 +104,11 @@ const Header = ({ onLogout }) => {
       messages={messages}
       sendMessage={sendMessage}
       currentUser={token.username}
-      />}
+      />
+      }
+      <ul>
+        
+      </ul>
     </>
   );
 };

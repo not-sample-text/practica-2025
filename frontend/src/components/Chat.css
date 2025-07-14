@@ -15,7 +15,7 @@ chat-container {
 
 .chat-header {
     padding: 10px;
-    background-color: #f1f1f1;
+    background-color: #282828;
     border-bottom: 1px solid #ccc;
     display: flex;
     justify-content: space-between;
