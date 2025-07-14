@@ -34,6 +34,7 @@ const handleMainPage = async (ctx, next) => {
 };
 
 const handleLogin = async (ctx, next) => {
+
 	if (!ctx.url.includes("/login")) {
 		await next();
 		return;

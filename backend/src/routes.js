@@ -7,11 +7,17 @@ const routes = new Router();
 
 routes
     .get('/logout', async (ctx, next) => {
+        
         ctx.cookies.set('token', '', { maxAge: 0 });
         ctx.status = 200;
+        
         ctx.body = { success: true, message: "Logged out successfully" };
-    }).post('/login', async (ctx, next) => {
-
+        await next();
+        // return;
+    });
+    
+routes.post('/login', async (ctx, next) => {
+        
         let { username, password } = ctx.request.body;
         const errors = await auth.validateLoginInput(username, password);
 
@@ -22,9 +28,10 @@ routes
 
         const token = auth.createToken(username);
         ctx.cookies.set("token", token, config.cookieOptions);
-        ctx.body = { success: true, token: token };
-
-    })
+        ctx.body = { success: true, token: token }; 
+        await next();
+        // return;
+    })  
     ;
 
 
