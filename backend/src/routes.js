@@ -7,38 +7,34 @@ const routes = new Router();
 
 routes
     .get('/logout', async (ctx, next) => {
+
         ctx.cookies.set('token', '', { maxAge: 0 });
         ctx.status = 200;
+
         ctx.body = { success: true, message: "Logged out successfully" };
-    }).post('/login', async (ctx, next) => {
+        await next();
+        // return;
+    });
 
-        let { username, password } = ctx.request.body;
-        const errors = await auth.validateLoginInput(username, password);
+routes.post('/register', loginHandler);
+routes.post('/login', loginHandler);
 
-        if (Object.keys(errors).length > 0) {
-            ctx.status = 400;
-            return ctx.body = { success: false, error: errors };
-        }
 
-        const token = auth.createToken(username);
-        ctx.cookies.set("token", token, config.cookieOptions);
-        ctx.body = { success: true, token: token };
+async function loginHandler (ctx, next) {
 
-    }).post('/register', async (ctx, next) => {
-        let { username, password } = ctx.request.body;
-        const errors = await auth.validateRegistrationInput(username, password);
+    let { username, password } = ctx.request.body;
+    const errors = await auth.validateLoginInput(username, password);
 
-        if (Object.keys(errors).length > 0) {
-            ctx.status = 400;
-            return ctx.body = { success: false, error: errors };
-        }
+    if (Object.keys(errors).length > 0) {
+        ctx.status = 400;
+        return ctx.body = { success: false, error: errors };
+    }
 
-        const users = JSON.parse(await fs.readFile('users.json', "utf-8"));
-        users[username] = { username, password };
-        await fs.writeFile('users.json', JSON.stringify(users, null, 2));
-
-    })
-    ;
-
+    const token = auth.createToken(username);
+    ctx.cookies.set("token", token, config.cookieOptions);
+    ctx.body = { success: true, token: token };
+    await next();
+    // return;
+}
 
 module.exports = routes;
