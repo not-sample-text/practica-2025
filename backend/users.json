@@ -11,5 +11,9 @@
   "test24": {
     "username": "test24",
     "password": "test12345"
+  },
+  "test22": {
+    "username": "test22",
+    "password": "test12345"
   }
 }
