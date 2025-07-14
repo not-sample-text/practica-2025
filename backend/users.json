@@ -14,5 +14,13 @@
   "alebercuu": {
     "username": "alebercuu",
     "password": "ale12345"
+  },
+  "test1": {
+    "username": "test1",
+    "password": "test12345"
+  },
+  "test2": {
+    "username": "test2",
+    "password": "test12345"
   }
 }

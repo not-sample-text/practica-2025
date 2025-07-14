@@ -17,6 +17,12 @@ class WebSocketManager {
 			return;
 		}
 
+		if (this.userAlreadyConnected(token)) {
+            const currentUsername = auth.getUsernameFromToken(token);
+            console.log(`User  ${currentUsername} is already connected. Disconnecting previous session.`);
+            this.forceDisconnectClient(currentUsername); 
+        }
+
 		(this.clients).set(token, ctx.websocket);
 		console.log(`Socket client «${token}» added`);
 
@@ -83,6 +89,40 @@ class WebSocketManager {
 			}
 		})
 	}
+
+	userAlreadyConnected(token) {
+		const currentUsername = auth.getUsernameFromToken(token);
+
+		for (const [token, session] of this.clients) {
+
+			const clientUsername = auth.getUsernameFromToken(token);
+			if (clientUsername === currentUsername) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	forceDisconnectClient(username) {
+
+        for (const [token, socket] of this.clients) {
+
+            const clientUsername = auth.getUsernameFromToken(token);
+            if (clientUsername === username) {
+
+                // Close the connection if it's still open
+                if ([socket.OPEN, socket.CONNECTING].includes(socket.readyState)) {
+                    socket.close(1000, 'Forcefully disconnected by server');
+                }
+
+                this.clients.delete(token); 
+                console.log(`Forcefully disconnected client ${username}`);
+
+                break; 
+            }
+        }
+    }
+
 }
 
 module.exports = WebSocketManager;
