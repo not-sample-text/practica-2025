@@ -53,20 +53,6 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
     }
   };
 
-  const parseMessage = (message) => {
-    // Format: "token–message" or "token–Invalid or expired token"
-    const parts = message.split('–');
-    if (parts.length >= 2) {
-      const token = parts[0];
-      const content = parts.slice(1).join('–');
-      
-      // Extract username from token instead of showing the token
-      const messageUsername = getUsernameFromToken(token);
-      
-      return { username: messageUsername, content };
-    }
-    return { username: 'Unknown User', content: message };
-  };
 
   const getConnectionStatusColor = () => {
     switch (connectionStatus) {
@@ -180,9 +166,8 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
               </div>
             ) : (
               messages.map((message, index) => {
-                const parsed = parseMessage(message);
-                const isSystemMessage = parsed.content.includes('Invalid or expired token');
-                const isCurrentUser = parsed.username === username;
+                const isSystemMessage = message.content.includes('Invalid or expired token');
+                const isCurrentUser = message.username === username;
                 
                 return (
                   <div 
@@ -208,7 +193,7 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
                     }}>
                       {isSystemMessage ? (
                         <div style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>
-                          🔒 System: {parsed.content}
+                          🔒 System: {message.content}
                         </div>
                       ) : (
                         <div>
@@ -218,13 +203,13 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus }) => {
                             marginBottom: '0.25rem',
                             opacity: 0.9
                           }}>
-                            {isCurrentUser ? 'You' : parsed.username}
+                            {isCurrentUser ? 'You' : message.username}
                           </div>
                           <div style={{ 
                             fontSize: '1rem',
                             lineHeight: '1.4'
                           }}>
-                            {parsed.content}
+                            {message.content}
                           </div>
                         </div>
                       )}
