@@ -13,12 +13,10 @@
 		"@koa/router": "^13.1.1",
 		"@tailwindcss/cli": "^4.1.11",
 		"bad-words": "^4.0.0",
-		"cookie": "^1.0.2",
 		"jsonwebtoken": "^9.0.2",
 		"koa": "^3.0.0",
 		"koa-bodyparser": "^4.4.1",
 		"koa-route": "^3.2.0",
-		"koa-router": "^13.1.1",
 		"koa-static": "^5.0.0",
 		"koa-websocket": "^5.0.1",
 		"tailwindcss": "^4.1.11"

@@ -76,54 +76,6 @@ const handleLogin = async (ctx, next) => {
 	}
 };
 
-const path = require("path");
-const usersFile = path.join(__dirname, "users.json");
-
-// Încarcă utilizatorii
-const loadUsers = () => {
-	try {
-		const data = fs.readFileSync(usersFile, "utf-8");
-		return JSON.parse(data);
-	} catch (e) {
-		return {};
-	}
-};
-
-const saveUsers = (users) => {
-	fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), "utf-8");
-};
-
-const handleRegister = async (ctx, next) => {
-	if (ctx.url !== "/register" || ctx.method !== "POST") {
-		await next();
-		return;
-	}
-
-	const body = await parseRequestBody(ctx);
-	const { username, password } = body;
-
-	const errors = await auth.validateLoginInput(username, password);
-	if (Object.keys(errors).length > 0) {
-		ctx.status = 400;
-		ctx.body = { success: false, error: errors };
-		return;
-	}
-
-	const users = loadUsers();
-	if (users[username]) {
-		ctx.status = 400;
-		ctx.body = { success: false, error: { username: "Utilizatorul există deja." } };
-		return;
-	}
-
-	users[username] = password;
-	saveUsers(users);
-
-	ctx.status = 200;
-	ctx.body = { success: true, message: "Înregistrare reușită." };
-};
-
-
 const handleDefault = async (ctx) => {
 	ctx.body = "Hello World";
 };
@@ -131,6 +83,5 @@ const handleDefault = async (ctx) => {
 module.exports = {
 	handleMainPage,
 	handleLogin,
-	handleRegister,
 	handleDefault
 };
