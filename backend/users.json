@@ -3,13 +3,20 @@
     "username": "viorelfilip",
     "password": "test12345"
   },
-  "undefined": {},
-  "viorelfilip@outlook.com": {
-    "username": "viorelfilip@outlook.com",
-    "password": "Sanda@01"
+  "vio": {
+    "username": "vio",
+    "password": "test12345678"
   },
-  "test24": {
-    "username": "test24",
+  "calin": {
+    "username": "calin",
     "password": "test12345"
+  },
+  "test22": {
+    "username": "test22",
+    "password": "test12345"
+  },
+  "alebercuu": {
+    "username": "alebercuu",
+    "password": "ale12345"
   }
 }
