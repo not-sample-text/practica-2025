@@ -109,7 +109,7 @@ class WebSocketManager {
         // Send the lobbies to all connected clients
         (this.clients).forEach((client) => {
             if (client.readyState === client.OPEN) {
-                client.send(JSON.stringify({ type: 'lobbies', content }));
+                client.send(JSON.stringify({ type: 'lobby', content: content }));
             }
         })
     }

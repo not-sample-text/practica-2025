@@ -45,7 +45,7 @@ const router = createBrowserRouter([{
 },
 {
   path: '/lobby/:name',
-  element: <ProtectedRoute><LobbyRoom name={name} onLeave={() => {window.location.href = '/dashboard'}} /></ProtectedRoute>
+  element: <ProtectedRoute><LobbyRoom onLeave={() => {window.location.href = '/'}} /></ProtectedRoute>
 }
 ])
 

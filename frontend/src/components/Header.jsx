@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import CreateLobby from './CreateLobby';
-import LobbyListElement from './LobbyListElement';
 
 const Header = ({ onLogout, messages, sendMessage, connectionStatus, }) => {
   const [newMessage, setNewMessage] = useState('');
   const [username, setUsername] = useState('');
   const [isChatHidden, setIsChatHidden] = useState(false);
-  const [isCreatingLobby, setIsCreatingLobby] = useState(false);
-  const [lobbies, setLobbies] = useState([]);
   const messagesEndRef = useRef(null);
 
   // Get username from JWT token
@@ -331,51 +327,6 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus, }) => {
           {isChatHidden ? '👁️' : '👁️‍🗨️'}
         </button>
       </div>
-    </div>
-    <div style={{ 
-      position: 'absolute',
-      top: '1rem',
-      right: '1rem',
-      zIndex: 1000,
-      backgroundColor: '#3f3f3fff',
-      padding: '0.5rem 1rem',
-      borderRadius: '8px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      maxWidth: '300px',
-      width: '100%'
-    }}>
-      <button onClick={() => setIsCreatingLobby(true)}>Create Lobby</button>
-      {/* CreateLobby popup */}
-      {isCreatingLobby && <CreateLobby onCreateLobby={(lobbyName) => {
-          console.log("Lobby created:", lobbyName);
-          window.location.href = `/lobby/${lobbyName}`;
-          setIsCreatingLobby(false);
-          sendMessage({ type: 'lobby', name: lobbyName });
-        }} />}
-    </div>
-    <div style={{ 
-      position: 'absolute',
-      top: '1rem',
-      left: '1rem',
-      zIndex: 1000,
-      backgroundColor: '#3f3f3fff',
-      padding: '0.5rem 1rem',
-      borderRadius: '8px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      maxWidth: '300px',
-      width: '100%' 
-    }}>
-      <h3>Lobby List</h3>
-      {lobbies.length === 0 ? (
-        <p>No lobbies available.</p>
-      ) : (
-        lobbies.map((lobby, index) => (
-          <LobbyListElement key={index} lobby={lobby} onJoin={(id) => {
-            console.log("Joining lobby:", id);
-            window.location.href = `/lobby/${id}`;
-          }} />
-        ))
-      )}
     </div>
     </>
   );

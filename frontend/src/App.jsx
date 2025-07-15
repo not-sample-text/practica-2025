@@ -3,6 +3,8 @@ import React, { use, useEffect, useRef } from "react";
 import Login from "./components/Login";
 import Header from "./components/Header";
 import ActiveUsers from "./components/ActiveUsers";
+import CreateLobby from "./components/CreateLobby";
+import LobbyListElement from "./components/LobbyListElement";
 
 const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
@@ -17,6 +19,7 @@ function App() {
   const [messages, setMessages] = React.useState([]);
   const [connectionStatus, setConnectionStatus] =
     React.useState("disconnected");
+  const [lobbies, setLobbies] = React.useState([]);
 
   // WebSocket connection effect
   useEffect(() => {
@@ -57,7 +60,18 @@ function App() {
             setUsers(content);
             break;
           case "lobby":
-            console.log("Lobby update received:", content);
+            setLobbies((prev) => {
+              const updatedLobbies = [...prev];
+              const existingLobbyIndex = updatedLobbies.findIndex(
+                (lobby) => lobby.name === content.name
+              );
+              if (existingLobbyIndex > -1) {
+                updatedLobbies[existingLobbyIndex] = content;
+              } else {
+                updatedLobbies.push(content);
+              }
+              return updatedLobbies;
+            });
             break;
           default:
             console.warn("Unknown message type:", type);
@@ -153,6 +167,29 @@ function App() {
         sendMessage={sendMessage}
         connectionStatus={connectionStatus}
       />
+      <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000 }}>
+        <CreateLobby onCreateLobby={(lobbyName) => {
+          console.log("Lobby created:", lobbyName);
+          window.location.href = `/lobby/${lobbyName}`;
+          sendMessage({ type: 'lobby', name: lobbyName });
+        }} />
+      </div>
+      <div className="lobby-list">
+        {lobbies.length === 0 ? (
+          <p>Nu sunt lobby-uri disponibile.</p>
+        ) : (
+          lobbies.map((lobby, index) => (
+            <LobbyListElement
+              key={index}
+              lobby={lobby}
+              onJoin={(name) => {
+                console.log("Joining lobby:", name);
+                window.location.href = `/lobby/${name}`;
+              }}
+            />
+          ))
+        )}
+      </div>
     </>
   ) : (
     <Login onLogin={handleLogin} />

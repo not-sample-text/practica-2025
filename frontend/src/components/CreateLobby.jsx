@@ -14,16 +14,16 @@ const CreateLobby = ({ onCreateLobby }) => {
 
   return (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
-      <h2>Create Lobby</h2>
+      <h2>Creaza Lobby</h2>
       <input
         type="text"
         value={lobbyName}
         onChange={(e) => setLobbyName(e.target.value)}
-        placeholder="Enter lobby name"
+        placeholder="Introduceti numele lobby-ului"
         style={{ padding: "10px", width: "200px" }}
       />
       <button onClick={handleCreateLobby} style={{ padding: "10px", marginLeft: "10px" }}>
-        Create
+        Creaza
       </button>
     </div>
   );
