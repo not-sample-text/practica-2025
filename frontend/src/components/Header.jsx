@@ -51,7 +51,6 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus, }) => {
     }
   };
   
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSendMessage();
@@ -347,11 +346,11 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus, }) => {
     }}>
       <button onClick={() => setIsCreatingLobby(true)}>Create Lobby</button>
       {/* CreateLobby popup */}
-      {isCreatingLobby && <CreateLobby onCreateLobby={(name) => {
-          console.log("Lobby created:", name);
-          window.location.href = `/lobby/${name}`;
+      {isCreatingLobby && <CreateLobby onCreateLobby={(lobbyName) => {
+          console.log("Lobby created:", lobbyName);
+          window.location.href = `/lobby/${lobbyName}`;
           setIsCreatingLobby(false);
-          sendMessage({ type: 'lobby', name: name });
+          sendMessage({ type: 'lobby', name: lobbyName });
         }} />}
     </div>
     <div style={{ 
@@ -364,7 +363,7 @@ const Header = ({ onLogout, messages, sendMessage, connectionStatus, }) => {
       borderRadius: '8px',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       maxWidth: '300px',
-      width: '100%'
+      width: '100%' 
     }}>
       <h3>Lobby List</h3>
       {lobbies.length === 0 ? (

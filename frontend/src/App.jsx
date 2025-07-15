@@ -56,6 +56,9 @@ function App() {
           case "usernames":
             setUsers(content);
             break;
+          case "lobby":
+            console.log("Lobby update received:", content);
+            break;
           default:
             console.warn("Unknown message type:", type);
             return;

@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { getTokenFromCookie } from './helpers/getTokenFromCookie.js'
 import { decodeJWTPayload } from './helpers/decodeJWTPayload.js';
 import { clearCookie } from './helpers/clearCookie.js';
+import LobbyRoom from './components/LobbyRoom.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = getTokenFromCookie();
@@ -44,7 +45,7 @@ const router = createBrowserRouter([{
 },
 {
   path: '/lobby/:name',
-  element: <ProtectedRoute><Lobby name={name} onLeave={() => {window.location.href = '/dashboard'}} /></ProtectedRoute>
+  element: <ProtectedRoute><LobbyRoom name={name} onLeave={() => {window.location.href = '/dashboard'}} /></ProtectedRoute>
 }
 ])
 

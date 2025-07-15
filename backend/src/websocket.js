@@ -69,7 +69,6 @@ class WebSocketManager {
 		});
 
 		this.sendUsernames();
-        this.sendLobbies();
 
 		ctx.websocket.on('close', () => {
 			console.log('Client disconnected');
