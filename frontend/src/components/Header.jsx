@@ -1,56 +1,89 @@
-import React from "react";
-const getTokenFormCookie = () => {
-  const match = document.cookie.match(/token=([^;]+)/);
-  return match ? match[1] : null;
-};
-const decodeJWTPayload = (token) => {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
+import React, { useEffect, useRef } from 'react';
+import { Outlet, NavLink } from 'react-router-dom';
+import ActiveUsers from './ActiveUsers';
 
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-};
-const Header = ({ onLogout }) => {
-  const [token] = React.useState(decodeJWTPayload(getTokenFormCookie()));
-  const logOut = () => {
-    fetch("/logout")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Deconectare eșuată.");
-        }
-        onLogout(null);
-      })
-      .catch((error) => {
-        console.error("Eroare la deconectare:", error);
-      });
+const Header = ({ onLogout, connectionStatus, username, users }) => {
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const dropdownElement = dropdownRef.current;
+    if (dropdownElement && window.bootstrap) {
+      const bsDropdown = new window.bootstrap.Dropdown(dropdownElement);
+      return () => bsDropdown.dispose();
+    }
+  }, []);
+
+  const getConnectionStatusClass = () => {
+    switch (connectionStatus) {
+      case 'connected': return 'text-success';
+      case 'disconnected': return 'text-danger';
+      default: return 'text-muted';
+    }
   };
+
   return (
-    <nav>
-      <ul>
-        <li>
-          <strong>Joc extrem</strong>
-        </li>
-      </ul>
-      <ul>
-        <li>
-          <a href="">Salut, {token.username}</a>
-          <a href="" onClick={e => { e.preventDefault(); logOut(); }}>
-            Deconectare
-          </a>
-        </li>
-      </ul>
-    </nav>
+    <div className="vh-100 d-flex flex-column">
+      <header className="py-3 px-4 border-bottom d-flex justify-content-between align-items-center bg-white shadow-sm flex-shrink-0">
+        <div>
+          <h1 className="m-0 fs-4 fw-semibold text-dark">Chat Game</h1>
+          <p className="m-0 mt-1 text-muted">
+            Logat ca <strong className="fw-bold">{username}</strong>
+            <span className={`ms-3 fw-bold small ${getConnectionStatusClass()}`}>● {connectionStatus.toUpperCase()}</span>
+          </p>
+        </div>
+        <div className="d-flex align-items-center">
+          <div className="dropdown">
+            <button ref={dropdownRef} className="btn btn-outline-primary rounded-pill px-3 me-3 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i className="bi bi-people-fill me-1"></i>
+              Utilizatori Online <span className="badge bg-primary text-white ms-2 rounded-circle">{users.length}</span>
+            </button>
+            <div className="dropdown-menu dropdown-menu-end shadow border-0" style={{minWidth: '280px'}}>
+              <ActiveUsers users={users} />
+            </div>
+          </div>
+          <button onClick={onLogout} className="btn btn-danger rounded-pill px-4">
+            <i className="bi bi-box-arrow-right me-2"></i>
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <nav className="py-2 px-4 bg-light border-bottom flex-shrink-0">
+        <ul className="nav nav-pills nav-fill">
+          <li className="nav-item">
+            <NavLink 
+              to="/home/global" 
+              className="nav-link d-flex align-items-center justify-content-center gap-2"
+            >
+              <i className="bi bi-globe fs-5"></i>
+              <span className="fw-medium">Chat Global</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink 
+              to="/home/rooms" 
+              className="nav-link d-flex align-items-center justify-content-center gap-2"
+            >
+              <i className="bi bi-door-open-fill fs-5"></i>
+              <span className="fw-medium">Camere (în curând)</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink 
+              to="/home/private" 
+              className="nav-link d-flex align-items-center justify-content-center gap-2"
+            >
+              <i className="bi bi-person-hearts fs-5"></i>
+              <span className="fw-medium">Privat (în curând)</span>
+            </NavLink>
+          </li>
+        </ul>
+      </nav>
+
+      <main className="flex-grow-1 d-flex flex-column" style={{ overflowY: 'hidden' }}>
+        <Outlet />
+      </main>
+    </div>
   );
 };
 

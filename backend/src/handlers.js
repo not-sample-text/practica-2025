@@ -1,4 +1,3 @@
-// Request handlers
 
 const fs = require("fs");
 const auth = require("./auth");
