@@ -16,7 +16,7 @@ const app = websockify(new Koa());
 const wsManager = new WebSocketManager();
 
 // Serve static files
-app.use(serve(__dirname + "/dist"));
+app.use(serve(__dirname + "./../frontend/dist", {index: "index.html"}));
 
 // WebSocket route
 app.ws.use(route.all("/ws", (ctx) => wsManager.handleConnection(ctx)));
@@ -32,4 +32,4 @@ app
 
 // Start server
 app.listen(config.port);
-console.log(`Server running at http://localhost:${config.port}`);
+console.log(`http://localhost:${config.port}`);
