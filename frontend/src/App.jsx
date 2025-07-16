@@ -24,6 +24,10 @@ function App() {
 		setAuthModal({ isOpen: false, mode: "login" });
 	};
 
+	const handleModeChange = (newMode) => {
+		setAuthModal((prev) => ({ ...prev, mode: newMode }));
+	};
+
 	const handleAuthSuccess = () => {
 		// Refresh auth state by getting updated token
 		const token = document.cookie.match(/token=([^;]+)/)?.[1];
@@ -78,6 +82,7 @@ function App() {
 				onClose={handleCloseAuthModal}
 				onSuccess={handleAuthSuccess}
 				mode={authModal.mode}
+				onModeChange={handleModeChange}
 			/>
 		</>
 	);

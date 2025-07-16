@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Modal from "../ui/Modal";
+import Button from "../ui/Button";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 import AuthService from "../../services/authService";
@@ -7,8 +8,13 @@ import AuthService from "../../services/authService";
 /**
  * Authentication modal container - handles auth logic and form switching
  */
-const AuthModal = ({ isOpen, onClose, onSuccess, mode = "login" }) => {
-	const [currentMode, setCurrentMode] = useState(mode);
+const AuthModal = ({
+	isOpen,
+	onClose,
+	onSuccess,
+	mode = "login",
+	onModeChange
+}) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 
@@ -43,18 +49,19 @@ const AuthModal = ({ isOpen, onClose, onSuccess, mode = "login" }) => {
 	};
 
 	const handleModeSwitch = () => {
-		setCurrentMode(currentMode === "login" ? "signup" : "login");
+		const newMode = mode === "login" ? "signup" : "login";
+		onModeChange(newMode);
 		setError("");
 	};
 
-	const title = currentMode === "login" ? "Autentificare" : "Înregistrare";
+	const title = mode === "login" ? "Autentificare" : "Înregistrare";
 
 	return (
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
 			title={title}>
-			{currentMode === "login" ? (
+			{mode === "login" ? (
 				<LoginForm
 					onSubmit={handleLogin}
 					loading={loading}
@@ -73,13 +80,14 @@ const AuthModal = ({ isOpen, onClose, onSuccess, mode = "login" }) => {
 			)}
 
 			<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-				{currentMode === "login" ? "Nu ai cont? " : "Ai deja cont? "}
-				<button
-					type="button"
+				{mode === "login" ? "Nu ai cont? " : "Ai deja cont? "}
+				<Button
 					onClick={handleModeSwitch}
-					className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
-					{currentMode === "login" ? "Înregistrează-te" : "Conectează-te"}
-				</button>
+					variant="ghost"
+					size="small"
+					className="ml-1">
+					{mode === "login" ? "Înregistrează-te" : "Conectează-te"}
+				</Button>
 			</div>
 		</Modal>
 	);
