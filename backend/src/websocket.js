@@ -48,6 +48,7 @@ class WebSocketManager {
                 case 'lobby':
                     if (!this.lobbies.has(parsed.name)) {
                         this.lobbies.set(parsed.name, {
+                            host: auth.getUsernameFromToken(token),
                             name: parsed.name,
                             players: [{ username: auth.getUsernameFromToken(token) }]
                         });
@@ -79,7 +80,31 @@ class WebSocketManager {
 		ctx.websocket.on('close', () => {
 			console.log('Client disconnected');
 			(this.clients).delete(token);
+            const disconnectedUsername = auth.getUsernameFromToken(token);
+            console.log(`Socket client «${disconnectedUsername}» removed`);
+            // Remove from lobbies if the user was in any
+            this.lobbies.forEach((lobby, lobbyName) => {
+                lobby.players = lobby.players.filter(player => player.username !== disconnectedUsername);
+                if (lobby.players.length === 0) {
+                    this.lobbies.delete(lobbyName);
+                    console.log(`Lobby «${lobbyName}» removed due to no players`);
+                } else {
+                    console.log(`Player «${disconnectedUsername}» removed from lobby «${lobbyName}»`);
+                    if (lobby.host === disconnectedUsername) {
+                        // If the host left, promote a new host or remove the lobby
+                        if (lobby.players.length > 0) {
+                            lobby.host = lobby.players[0].username; // Promote first player to host
+                            console.log(`New host for lobby «${lobbyName}»: ${lobby.host}`);
+                        } else {
+                            this.lobbies.delete(lobbyName);
+                            console.log(`Lobby «${lobbyName}» removed due to no players`);
+                        }
+                    }
+                }
+            });
+            // Send updated usernames to all clients
 			this.sendUsernames();
+            this.sendLobbies();
 		});
 
 	}
