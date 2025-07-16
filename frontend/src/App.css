@@ -18,3 +18,40 @@
   display: flex;
   flex-direction: row-reverse;
 }
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
+  width: 100vw;  /* Full viewport width */
+  background-color: #2e2e2e;
+  overflow: hidden; /* Prevent scrollbars on the main container */
+}
+
+.main-content {
+  display: flex;
+  flex-grow: 1; /* This makes the content area fill the remaining vertical space */
+  min-height: 0;
+  height: calc(100% - 70px); /* Adjust 70px to your header's height */
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0; /* Prevents the sidebar from shrinking */
+  background-color: #555555;
+  border-right: 1px solid #e0e0e0;
+  padding: 1rem;
+  overflow-y: auto; /* Add a scrollbar if the user list is long */
+}
+
+.chat-container{
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f0f0f0;
+  border-left: 1px solid #e0e0e0;
+}
+
+nav{
+  flex-shrink: 0;
+}

@@ -45,6 +45,19 @@ class WebSocketManager {
 				case 'private':
 					this.privateMessage(token, parsed.chatname, parsed);
 					break;
+                case 'lobby':
+                    if (!this.lobbies.has(parsed.name)) {
+                        this.lobbies.set(parsed.name, {
+                            name: parsed.name,
+                            players: [{ username: auth.getUsernameFromToken(token) }]
+                        });
+                    } else {
+                        const lobby = this.lobbies.get(parsed.name);
+                        if (!lobby.players.some(player => player.username === auth.getUsernameFromToken(token)))
+                            lobby.players.push({ username: auth.getUsernameFromToken(token) });
+                    }
+                    this.sendLobbies();
+                    break;
 				default:
 					console.log(`Unknown message type: ${message}`);
 					return ctx.websocket.send(JSON.stringify({

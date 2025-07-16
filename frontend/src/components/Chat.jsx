@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const Chat = ({
-  chatname = "vio",
+  chatname,
   username,
   messages,
   sendMessage,
@@ -22,7 +22,7 @@ const Chat = ({
   const handleSendMessage = () => {
     if (newMessage.trim() && connectionStatus === "connected") {
       sendMessage({
-        type: chatname === "broadcast" ? "broadcast" : "private",
+        type: chatname === "Global" ? "broadcast" : "private",
         chatname,
         content: newMessage,
       });

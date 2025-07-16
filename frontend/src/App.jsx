@@ -5,6 +5,8 @@ import Chat from "./components/Chat";
 import ActiveUsers from "./components/ActiveUsers";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
+import CreateLobby from "./components/CreateLobby";
+import LobbyListElement from "./components/LobbyListElement";
 
 const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
@@ -21,6 +23,7 @@ function App() {
   const [connectionStatus, setConnectionStatus] =
     React.useState("disconnected");
   const [lobbies, setLobbies] = React.useState([]);
+  const [chatname, setChatname] = React.useState("Global");
 
   // WebSocket connection effect
   useEffect(() => {
@@ -169,19 +172,36 @@ function App() {
   };
 
   return isLoggedIn ? (
-    <div className="">
-      <div className="grid">
-        <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
-      </div>
-      <div className="grid">
-        <ActiveUsers users={users} newMessages={newMessages} />
-        {true&&<Chat
-          username={username}
-          onLogout={handleLogout}
-          messages={messages}
-          sendMessage={sendMessage}
-          connectionStatus={connectionStatus}
+    <div className="app-container">
+      <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
+      <div className="main-content">
+        <div className="sidebar">
+          <ActiveUsers onChatNameChange={setChatname} users={users} newMessages={newMessages} />
+        </div>
+        <div className="chat-container">
+          {true&&<Chat
+            chatname={chatname}
+            username={username}
+            onLogout={handleLogout}
+            messages={messages}
+            sendMessage={sendMessage}
+            connectionStatus={connectionStatus}
         />}
+        </div>
+        <div className="create-lobby-container">
+          <CreateLobby />
+        </div>
+        <div className="lobby-list-container">
+          {lobbies.length > 0 ? (
+            <ul>
+              {lobbies.map((lobby) => (
+                <LobbyListElement key={lobby.name} lobby={lobby} />
+              ))}
+            </ul>
+          ) : (
+            <p>No lobbies available</p>
+          )}
+        </div>
       </div>
     </div>
   ) : (
