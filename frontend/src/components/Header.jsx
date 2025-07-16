@@ -43,53 +43,55 @@ const Header = ({ onLogout, connectionStatus }) => {
   };
 
   return (
-    <nav>
-      <nav>
-        <ul>
-          <li>
-            <strong>Joc</strong>
-          </li>
-        </ul>
-        <ul>
-          <li>
-            <a href="#">Salut, «{username}»</a>
-          </li>
-          <li>
-            <span
-                style={{
-                  marginLeft: "1rem",
-                  color: getConnectionStatusColor(),
-                  fontWeight: "bold",
-                  fontSize: "0.9rem",
-                }}
-              >
-                ● {connectionStatus.toUpperCase()}
-              </span>
-          </li>
-          <li>
-            <a href="#">          
-              <button 
-            onClick={onLogout}
-            style={{ 
-              padding: '0.26rem 1.5rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '14px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: '500',
-              transition: 'background-color 0.2s'
+
+    <nav className="container-fluid">
+      <ul>
+        <li>
+          <strong>Joc</strong>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <a href="#">Salut, «{username}»</a>
+        </li>
+        <li>
+          <span
+            style={{
+              marginLeft: "1rem",
+              color: getConnectionStatusColor(),
+              fontWeight: "bold",
+              fontSize: "0.9rem",
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
           >
-            Logout
-          </button></a>
-          </li>
-        </ul>
-      </nav>
+            ● {connectionStatus.toUpperCase()}
+          </span>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <a href="#">
+            <button
+              onClick={onLogout}
+              style={{
+                padding: '0.26rem 1.5rem',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '14px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '500',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+            >
+              Logout
+            </button></a>
+        </li>
+      </ul>
     </nav>
+
   );
 };
 

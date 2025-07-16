@@ -35,9 +35,9 @@ function App() {
   }, [isLoggedIn]);
 
   const connectWebSocket = () => {
-    if (websocketRef.current) {
-      websocketRef.current.close();
-    }
+    // if (websocketRef.current) {
+    //   websocketRef.current.close();
+    // }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const port =
@@ -154,19 +154,32 @@ function App() {
   };
 
   return isLoggedIn ? (
-    <div className="">
+    <div className="main">
       <div className="grid">
         <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
       </div>
       <div className="grid">
-        <ActiveUsers users={users} newMessages={newMessages} />
-        {true&&<Chat
-          username={username}
-          onLogout={handleLogout}
-          messages={messages}
-          sendMessage={sendMessage}
-          connectionStatus={connectionStatus}
-        />}
+        <div className="grid">
+          <ActiveUsers users={users} newMessages={newMessages} />
+          <div>
+            <h5>Chat</h5>
+            <Chat
+            username={username}
+            onLogout={handleLogout}
+            messages={messages}
+            sendMessage={sendMessage}
+            connectionStatus={connectionStatus}
+          />
+          </div>
+          
+        </div>
+
+        <div className="game">
+          
+
+
+        </div>
+
       </div>
     </div>
   ) : (

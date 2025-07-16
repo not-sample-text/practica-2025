@@ -5,8 +5,10 @@ const ActiveUsers = ({ users, newMessages=[] }) => {
     return <div>No active users.</div>;
   }
   return (
-    <div>
+    <div className="overflow-auto container-fluid">
+      <h5>Active Users</h5>
       <ul>
+        <li><a href="">broadcast</a></li>
         {users.map((user, idx) => (
           <li key={user || idx}>
             <a href={`http://${user}`}>

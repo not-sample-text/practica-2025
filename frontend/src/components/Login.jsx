@@ -7,6 +7,19 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Get username from JWT token
+  const getUsernameFromToken = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.username || "Unknown User";
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      return "Unknown User";
+    }
+  };
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -31,7 +44,8 @@ const Login = ({ onLogin }) => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        onLogin(data.username || username);
+        const username = getUsernameFromToken(data.token);
+        onLogin(username);
       } else {
         setError(data.error?.general || "Autentificare eșuată. Verificați datele.");
       }

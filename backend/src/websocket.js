@@ -54,13 +54,7 @@ class WebSocketManager {
 						message: `Unknown message type: ${parsed.type}`
 					}));
 			}
-			// broadcast the message to all connected clients
-			(this.clients).forEach((client) => {
-				if (client.readyState === client.OPEN) {
-					console.log(token);
-					client.send(JSON.stringify({ type: 'message', token: token, message: message.toString() }));
-				}
-			});
+
 		});
 
 		this.sendUsernames();

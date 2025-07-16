@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const Chat = ({
-  chatname = "vio",
+  chatname = "broadcast",
   username,
   messages,
   sendMessage,
@@ -43,7 +43,7 @@ const Chat = ({
   return (
     <div
       style={{
-        height: "100vh",
+        height: "85vh",
         display: "flex",
         flexDirection: "row",
         maxWidth: "100%",
@@ -112,7 +112,7 @@ const Chat = ({
                   textAlign: "center",
                   color: "#ea9916ff",
                   marginTop: "2rem",
-                  fontSize: "1.1rem",
+                  fontSize: "0.9rem",
                 }}
               >
                 <p>💬 Niciun mesaj încă. Începe conversația.!</p>
