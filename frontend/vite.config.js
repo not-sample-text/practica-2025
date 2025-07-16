@@ -7,7 +7,16 @@ export default defineConfig({
   server: {
     proxy: {
       '/login': {
-        target: proxy,
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/register': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'http://localhost:3000',
+        ws: true,
         changeOrigin: true,
       },
     },

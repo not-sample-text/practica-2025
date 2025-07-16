@@ -1,31 +1,10 @@
 const Router = require('@koa/router');
-const config = require("./config");
-const auth = require("./auth");
-const fs = require("fs/promises");
+const authHandlers = require('./handlers/authHandlers');
 
 const routes = new Router();
 
-routes
-    .get('/logout', async (ctx, next) => {
-        ctx.cookies.set('token', '', { maxAge: 0 });
-        ctx.status = 200;
-        ctx.body = { success: true, message: "Logged out successfully" };
-    }).post('/login', async (ctx, next) => {
-
-        let { username, password } = ctx.request.body;
-        const errors = await auth.validateLoginInput(username, password);
-
-        if (Object.keys(errors).length > 0) {
-            ctx.status = 400;
-            return ctx.body = { success: false, error: errors };
-        }
-
-        const token = auth.createToken(username);
-        ctx.cookies.set("token", token, config.cookieOptions);
-        ctx.body = { success: true, token: token };
-
-    })
-    ;
-
+routes.post('/login', authHandlers.login);
+routes.post('/register', authHandlers.register);
+routes.get('/logout', authHandlers.logout);
 
 module.exports = routes;
