@@ -28,7 +28,7 @@ class WebSocketManager {
 			// do something with the message from client
 			console.log(`Received from client »»» `, message);
 
-			let parsed = { type: 'message', content: message.toString() };
+			let parsed = { type: 'message', chatname: "", content: message.toString() };
 			try {
 				parsed = JSON.parse(message.toString());
 			} catch (e) { }
@@ -42,16 +42,9 @@ class WebSocketManager {
 				case 'broadcast':
 					this.broadcastMessage(token, parsed);
 					break;
-                case 'lobby':
-                    if (!this.lobbies.has(parsed.name)) {
-                        this.lobbies.set(parsed.name, { name: parsed.name, players: [] });
-                    }
-                    const lobby = this.lobbies.get(parsed.name);
-                    if (!lobby.players.some(player => player.username === auth.getUsernameFromToken(token))) {
-                        lobby.players.push({ username: auth.getUsernameFromToken(token) });
-                    }
-                    this.sendLobbies();
-                    break;
+				case 'private':
+					this.privateMessage(token, parsed.chatname, parsed);
+					break;
 				default:
 					console.log(`Unknown message type: ${message}`);
 					return ctx.websocket.send(JSON.stringify({
@@ -77,11 +70,20 @@ class WebSocketManager {
 		});
 
 	}
+	privateMessage(token, chatname, message) {
+		(this.clients).forEach((socket, tokenTo) => {
+			if (auth.getUsernameFromToken(tokenTo) !== chatname) return; // skip if not the intended recipient
+			if (socket.readyState === socket.OPEN) {
+				const username = auth.getUsernameFromToken(token); // username expeditor
+				socket.send(JSON.stringify({ username, ...message }));
+			}
+		});
+	}
 
 	broadcastMessage(token, message) {
 		(this.clients).forEach((client) => {
 			if (client.readyState === client.OPEN) {
-				const username = auth.getUsernameFromToken(token);
+				const username = auth.getUsernameFromToken(token); // username expeditor
 				client.send(JSON.stringify({ username, ...message }));
 			}
 		});

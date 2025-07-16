@@ -1,10 +1,10 @@
 import "./App.css";
-import React, { use, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import Login from "./components/Login";
-import Header from "./components/Header";
+import Chat from "./components/Chat";
 import ActiveUsers from "./components/ActiveUsers";
-import CreateLobby from "./components/CreateLobby";
-import LobbyListElement from "./components/LobbyListElement";
+import Header from "./components/Header";
+import Navbar from "./components/Navbar";
 
 const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
@@ -15,6 +15,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(!!getTokenFromCookie());
   const [username, setUsername] = React.useState(null);
   const [users, setUsers] = React.useState([]);
+  const [newMessages, setNewMessages] = React.useState([]);
   const websocketRef = useRef(null);
   const [messages, setMessages] = React.useState([]);
   const [connectionStatus, setConnectionStatus] =
@@ -40,8 +41,12 @@ function App() {
     }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.hostname}:3000/ws`;
-
+    const port =
+      location.port === "80" || location.port === "443"
+        ? ""
+        : `:${location.port}`;
+    const wsUrl = `${protocol}//${window.location.hostname}${port}/ws`;
+    console.log("Connecting to WebSocket at:", wsUrl);
     websocketRef.current = new WebSocket(wsUrl);
 
     websocketRef.current.onopen = () => {
@@ -53,6 +58,12 @@ function App() {
       try {
         const { username, type, content } = JSON.parse(event.data);
         switch (type) {
+          case "private":
+            setNewMessages((prev) => [
+              ...prev,
+              username,
+            ]);
+            break;
           case "broadcast":
             setMessages((prev) => [...prev, { content, username }]);
             break;
@@ -74,7 +85,7 @@ function App() {
             });
             break;
           default:
-            console.warn("Unknown message type:", type);
+            console.warn("Unknown message type:", { username, type, content });
             return;
         }
       } catch (e) {
@@ -109,7 +120,7 @@ function App() {
       websocketRef.current.readyState === WebSocket.OPEN
     ) {
       websocketRef.current.send(
-        JSON.stringify({ type: "broadcast", content: message })
+        JSON.stringify(message)
       );
     }
   };
@@ -158,39 +169,21 @@ function App() {
   };
 
   return isLoggedIn ? (
-    <>
-      <ActiveUsers users={users} />
-      <Header
-        username={username}
-        onLogout={handleLogout}
-        messages={messages}
-        sendMessage={sendMessage}
-        connectionStatus={connectionStatus}
-      />
-      <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000 }}>
-        <CreateLobby onCreateLobby={(lobbyName) => {
-          console.log("Lobby created:", lobbyName);
-          window.location.href = `/lobby/${lobbyName}`;
-          sendMessage({ type: 'lobby', name: lobbyName });
-        }} />
+    <div className="">
+      <div className="grid">
+        <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
       </div>
-      <div className="lobby-list">
-        {lobbies.length === 0 ? (
-          <p>Nu sunt lobby-uri disponibile.</p>
-        ) : (
-          lobbies.map((lobby, index) => (
-            <LobbyListElement
-              key={index}
-              lobby={lobby}
-              onJoin={(name) => {
-                console.log("Joining lobby:", name);
-                window.location.href = `/lobby/${name}`;
-              }}
-            />
-          ))
-        )}
+      <div className="grid">
+        <ActiveUsers users={users} newMessages={newMessages} />
+        {true&&<Chat
+          username={username}
+          onLogout={handleLogout}
+          messages={messages}
+          sendMessage={sendMessage}
+          connectionStatus={connectionStatus}
+        />}
       </div>
-    </>
+    </div>
   ) : (
     <Login onLogin={handleLogin} />
   );
