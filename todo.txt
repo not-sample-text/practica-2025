@@ -1,0 +1,2 @@
+implement chat rooms from danut branch
+multiple chats in bottom row instead of forced minimize for global chat
