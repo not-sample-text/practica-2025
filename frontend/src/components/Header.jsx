@@ -65,7 +65,7 @@ const Header = ({ onLogout, connectionStatus, username, users }) => {
               className="nav-link d-flex align-items-center justify-content-center gap-2"
             >
               <i className="bi bi-door-open-fill fs-5"></i>
-              <span className="fw-medium">Camere (în curând)</span>
+              <span className="fw-medium">Camere</span>
             </NavLink>
           </li>
           <li className="nav-item">
@@ -74,7 +74,7 @@ const Header = ({ onLogout, connectionStatus, username, users }) => {
               className="nav-link d-flex align-items-center justify-content-center gap-2"
             >
               <i className="bi bi-person-hearts fs-5"></i>
-              <span className="fw-medium">Privat (în curând)</span>
+              <span className="fw-medium">Chat Privat</span>
             </NavLink>
           </li>
         </ul>

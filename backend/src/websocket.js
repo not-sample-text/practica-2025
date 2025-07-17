@@ -1,11 +1,10 @@
-// WebSocket handling
-
 const auth = require("./auth");
 
 class WebSocketManager {
 
 	constructor() {
 		this.clients = new Map();
+		this.rooms = new Map();
 	}
 
 	handleConnection(ctx) {
@@ -27,8 +26,8 @@ class WebSocketManager {
 			let parsed = { type: 'message', content: message.toString() };
 			try {
 				parsed = JSON.parse(message.toString());
-			} catch (e) { }
-			console.log('Parsed message', parsed);
+			} catch (e) { console.error('Error parsing message:', e); }
+			console.log('Parsed Err', parsed);
 			switch (parsed.type) {
 				case 'disconnect':
 					console.log('Client disconnected');
@@ -38,7 +37,20 @@ class WebSocketManager {
 					this.broadcastMessage(token, parsed);
 					break;
 				case 'private_message':
+					console.log('Private message received', parsed);
 					this.sendPrivateMessage(token, parsed);
+					break;
+				case 'create_room':
+					this.createRooms(token, parsed.room);
+					break;
+				case 'join_room':
+					this.joinRoom(token, parsed.room);
+					break;
+				case 'leave_room':
+					this.leaveRoom(token, parsed.room);
+					break;
+				case 'sendRoomMessage':
+					this.sendRoomMessage(token, parsed.room, parsed.text)	;
 					break;
 				default:
 					console.log(`Unknown message type: ${message}`);
@@ -57,6 +69,8 @@ class WebSocketManager {
 		});
 
 		this.sendUsernames();
+		this.sendRoomLists();     // NOU: Lista camerelor disponibile
+        this.sendJoinedRoomsUpdate(token);
 
 		ctx.websocket.on('close', () => {
 			console.log('Client disconnected');
@@ -93,6 +107,138 @@ class WebSocketManager {
 			const clientUsername =auth.getUsernameFromToken(token);
 			if(clientUsername === recipientUsername && client.readyState === client.OPEN){
 				client.send(JSON.stringify(messageToSend));
+			}
+		})
+	}
+
+
+	createRooms(token, roomName) {
+		if(!roomName || roomName.trim() === '') {
+			return;
+		}
+		const normalRoomName = roomName.trim().toLowerCase();
+		if(this.rooms.has(normalRoomName)){
+			console.log(`Room ${normalRoomName} already exists`);
+			this.joinRoom(token, normalRoomName);
+			return;	
+		}
+		this.rooms.set(normalRoomName, new Set());
+		console.log(`Room ${normalRoomName} created`);
+		this.joinRoom(token, normalRoomName);
+		this.sendRoomLists();
+	}
+
+	joinRoom(token, roomName) {
+		const normalRoomName = roomName.trim().toLowerCase();
+		const username = auth.getUsernameFromToken(token);
+
+		if(!this.rooms.has(normalRoomName)) {
+			this.createRooms(token, normalRoomName);
+			return;
+		}
+		const roomMemebers = this.rooms.get(normalRoomName);
+		if(roomMemebers.has(token)){
+			console.log(`${username} is already in room ${normalRoomName}`);
+			return;
+		}
+
+		roomMemebers.add(token);
+		console.log(`${username} joined room ${normalRoomName}`);
+
+		this.sendJoinedRoomsUpdate(token);
+		this.sendRoomUserCountUpdate(normalRoomName);
+
+	}
+
+	leaveRoom(token, roomName) {
+		const normalRoomName = roomName.trim().toLowerCase();
+		const username = auth.getUsernameFromToken(token);
+		if(!this.rooms.has(normalRoomName)) {
+			console.log(`Room ${normalRoomName} does not exist`);
+			return;
+		}
+		const roomMemebers = this.rooms.get(normalRoomName)
+		if(!roomMemebers.has(token)) {
+			console.log(`${username} is not in room ${normalRoomName}`);
+			return;
+		}
+		this.sendRoomMessage(token, normalRoomName, `${username} has left the room`);
+		roomMemebers.delete(token);
+
+		if(roomMemebers.size === 0 ){
+			this.rooms.delete(normalRoomName);
+			console.log(`Room ${normalRoomName} deleted`);
+		}
+		this.sendJoinedRoomsUpdate(token);
+		this.sendRoomUserCountUpdate(normalRoomName);
+	}
+
+	sendRoomMessage(token,roomName, text) {
+		const normalRoomName = roomName.trim().toLowerCase();
+		const senderUsername = auth.getUsernameFromToken(token);
+		if(!this.rooms.has(normalRoomName)) {
+			console.log(`Room ${normalRoomName} does not exist`);
+			const senderSocket = this.clients.get(token);
+			if(senderSocket && senderSocket.readyState === senderSocket.OPEN) {
+				senderSocket.send(JSON.stringify({type: 'error', message: `Room ${normalRoomName} does not exist`}));
+			}
+			return;
+		}
+
+		const roomMembers = this.rooms.get(normalRoomName);
+		if(!roomMembers.has(token)) {
+			const senderSocket = this.clients.get(token);
+			if(senderSocket && senderSocket.readyState === senderSocket.OPEN) {
+				senderSocket.send(JSON.stringify({type: 'error', message: `You are not in room ${normalRoomName}`}));
+			}
+			return;
+		}
+		const messageToClients = { 
+			type: 'room_message',
+			room: normalRoomName,
+			sender: senderUsername,
+			text: text,
+			timestamp: Date.now() 
+		};
+
+		roomMembers.forEach(memberToken => {
+        const memberSocket = this.clients.get(memberToken);
+        if (memberSocket && memberSocket.readyState === memberSocket.OPEN) {
+            memberSocket.send(JSON.stringify(messageToClients));
+        }
+    });
+    console.log(`Message from ${senderUsername} in room '${normalRoomName}': ${text}`);
+}
+
+	sendRoomLists() {
+		const availableRooms = Array.from(this.rooms.keys());
+		this.clients.forEach(clientSocket => {
+			if(clientSocket.readyState === clientSocket.OPEN){
+				clientSocket.send(JSON.stringify({type: 'available_rooms', content: availableRooms}));
+			}
+		})
+	}
+
+	sendJoinedRoomsUpdate(targetToken) {
+		const clientSocket = this.clients.get(targetToken);
+		if(!clientSocket || clientSocket.readyState !== clientSocket.OPEN) return;
+		const joinedRoomsForClient =[]
+		this.rooms.forEach((members,roomName) => {
+			if(members.has(targetToken)) {
+				joinedRoomsForClient.push(roomName);
+			}
+		})
+		clientSocket.send(JSON.stringify({type: 'joined_rooms', content: joinedRoomsForClient}));
+	}
+	sendRoomUserCountUpdate(roomName){
+		const members = this.rooms.get(roomName);
+		if(!members)return;
+		const count = members.size;
+		this.clients.forEach(clientSocket => {
+			if(clientSocket.readyState === clientSocket.OPEN){
+				clientSocket.send(JSON.stringify({type: 'room_user_count', 
+					room: roomName,
+					count:count}));
 			}
 		})
 	}
