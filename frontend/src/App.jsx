@@ -1,8 +1,7 @@
 import "./App.css";
 import React, { useEffect, useRef } from "react";
 import Login from "./components/Login";
-import Chat from "./components/Chat";
-import ActiveUsers from "./components/ActiveUsers";
+import ChatManager from "./components/ChatManager";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 
@@ -14,12 +13,8 @@ const getTokenFromCookie = () => {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(!!getTokenFromCookie());
   const [username, setUsername] = React.useState(null);
-  const [users, setUsers] = React.useState([]);
-  const [newMessages, setNewMessages] = React.useState([]);
   const websocketRef = useRef(null);
-  const [messages, setMessages] = React.useState([]);
-  const [connectionStatus, setConnectionStatus] =
-    React.useState("disconnected");
+  const [connectionStatus, setConnectionStatus] = React.useState("disconnected");
 
   // WebSocket connection effect
   useEffect(() => {
@@ -54,30 +49,8 @@ function App() {
     };
 
     websocketRef.current.onmessage = (event) => {
-      try {
-        const { username, type, content } = JSON.parse(event.data);
-        switch (type) {
-          case "private":
-            setNewMessages((prev) => [
-              ...prev,
-              username,
-            ]);
-            break;
-          case "broadcast":
-            setMessages((prev) => [...prev, { content, username }]);
-            break;
-          case "usernames":
-            setUsers(content);
-            break;
-          default:
-            console.warn("Unknown message type:", { username, type, content });
-            return;
-        }
-      } catch (e) {
-        console.error("Error parsing WebSocket message:", e);
-        return;
-      }
-      console.log("Received message:", event);
+      // ChatManager will handle message processing
+      console.log("Received message:", event.data);
     };
 
     websocketRef.current.onclose = () => {
@@ -99,21 +72,9 @@ function App() {
     setConnectionStatus("disconnected");
   };
 
-  const sendMessage = (message) => {
-    if (
-      websocketRef.current &&
-      websocketRef.current.readyState === WebSocket.OPEN
-    ) {
-      websocketRef.current.send(
-        JSON.stringify(message)
-      );
-    }
-  };
-
   const handleLogin = (loggedInUsername) => {
     setUsername(loggedInUsername);
     setIsLoggedIn(true);
-    setMessages([]); // Clear messages on login
   };
 
   const handleLogout = async () => {
@@ -128,7 +89,6 @@ function App() {
         // Clear local state
         setIsLoggedIn(false);
         setUsername(null);
-        setMessages([]);
 
         // Close WebSocket connection
         disconnectWebSocket();
@@ -146,7 +106,6 @@ function App() {
       // Force logout even if server call fails
       setIsLoggedIn(false);
       setUsername(null);
-      setMessages([]);
       disconnectWebSocket();
       document.cookie =
         "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -154,19 +113,16 @@ function App() {
   };
 
   return isLoggedIn ? (
-    <div className="">
-      <div className="grid">
+    <div className="app-container">
+      <div className="app-header">
         <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
       </div>
-      <div className="grid">
-        <ActiveUsers users={users} newMessages={newMessages} />
-        {true&&<Chat
+      <div className="app-main">
+        <ChatManager 
           username={username}
-          onLogout={handleLogout}
-          messages={messages}
-          sendMessage={sendMessage}
           connectionStatus={connectionStatus}
-        />}
+          websocketRef={websocketRef}
+        />
       </div>
     </div>
   ) : (
