@@ -18,7 +18,7 @@ const PrivateChat = ({ messages, users, username, sendMessage, connectionStatus 
         return Array.from(conversedWith);
     }, [messages, username]);
 
-    const onlineUsersWithoutConversation = users.filter(user => user !== username && !conversations.includes(user));
+    const onlineUsers = users.filter(user => user !== username);
 
     const privateMessages = useMemo(() => {
         if (!chatPartner) return [];
@@ -73,9 +73,9 @@ const PrivateChat = ({ messages, users, username, sendMessage, connectionStatus 
                     )) : <span className="text-muted small fst-italic px-2">Nicio conversație.</span>}
                 </ul>
                 <hr />
-                <h5 className="mb-3">Utilizatori Online</h5>
+                <h5 className="mb-3">Utilizatori online</h5>
                 <ul className="nav nav-pills flex-column mb-auto">
-                     {onlineUsersWithoutConversation.map(user => (
+                     {onlineUsers.map(user => (
                         <li className="nav-item" key={user}>
                              <NavLink to={`/home/private/${user}`} className="nav-link text-truncate d-flex align-items-center gap-2">
                                 <i className="bi bi-person"></i>
@@ -83,7 +83,7 @@ const PrivateChat = ({ messages, users, username, sendMessage, connectionStatus 
                             </NavLink>
                         </li>
                     ))}
-                     {onlineUsersWithoutConversation.length === 0 && <span className="text-muted small fst-italic px-2">Niciun alt utilizator.</span>}
+                     {onlineUsers.length === 0 && <span className="text-muted small fst-italic px-2">Niciun alt utilizator.</span>}
                 </ul>
             </aside>
 

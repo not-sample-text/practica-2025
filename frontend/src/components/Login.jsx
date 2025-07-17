@@ -27,7 +27,7 @@ const Login = ({ onLogin }) => {
     })
     .then(data => {
       if (data.success) {
-        onLogin();
+        onLogin(username);
       }
     })
     .catch((err) => {
