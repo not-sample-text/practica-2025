@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "../stylecomponents/Header.css";
 
 const Header = ({ onLogout, connectionStatus }) => {
   const [username, setUsername] = useState("");
@@ -43,52 +44,36 @@ const Header = ({ onLogout, connectionStatus }) => {
   };
 
   return (
-    <nav>
-      <nav>
-        <ul>
-          <li>
-            <strong>Joc</strong>
-          </li>
-        </ul>
-        <ul>
-          <li>
-            <a href="#">Salut, «{username}»</a>
-          </li>
-          <li>
-            <span
-                style={{
-                  marginLeft: "1rem",
-                  color: getConnectionStatusColor(),
-                  fontWeight: "bold",
-                  fontSize: "0.9rem",
-                }}
-              >
-                ● {connectionStatus.toUpperCase()}
-              </span>
-          </li>
-          <li>
-            <a href="#">          
-              <button 
-            onClick={onLogout}
-            style={{ 
-              padding: '0.26rem 1.5rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '14px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: '500',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+    <nav className="header-nav">
+      <div className="nav-left">
+        <strong>Joc</strong>
+      </div>
+      <div className="nav-right">
+        <div className="user-info">
+          <div className="user-avatar">
+            <img 
+              src={`https://ui-avatars.com/api/?name=${username}&background=007bff&color=fff&size=32`} 
+              alt={username}
+              className="avatar-img"
+            />
+          </div>
+          <span className="username">Salut, {username}</span>
+        </div>
+        <div className="connection-status">
+          <span
+            className="status-indicator"
+            style={{ color: getConnectionStatusColor() }}
           >
-            Logout
-          </button></a>
-          </li>
-        </ul>
-      </nav>
+            ● {connectionStatus.toUpperCase()}
+          </span>
+        </div>
+        <button 
+          onClick={onLogout}
+          className="logout-btn"
+        >
+          Logout
+        </button>
+      </div>
     </nav>
   );
 };
