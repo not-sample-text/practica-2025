@@ -58,8 +58,22 @@ const Dashboard = ({ user, onLogout }) => {
 			{/* Main Content */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+					{/* Sidebar */}
+					{showUsers && (
+						<div className="lg:col-span-1">
+							<ActiveUsers
+								users={users}
+								newMessages={newMessages}
+								onUserClick={handleUserClick}
+							/>
+						</div>
+					)}
+
 					{/* Main Content Area */}
-					<div className="lg:col-span-3 space-y-6">
+					<div
+						className={`space-y-6 ${
+							showUsers ? "lg:col-span-3" : "lg:col-span-4"
+						}`}>
 						{/* Welcome Message */}
 						<div className="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6">
 							<h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -86,34 +100,34 @@ const Dashboard = ({ user, onLogout }) => {
 
 						{/* Chat Areas */}
 						<div className="space-y-4">
-							{activeChats.map((chat) => (
-								<Chat
-									key={chat.chatname}
-									chatname={chat.chatname}
-									username={user?.username}
-									messages={messages}
-									sendMessage={sendMessage}
-									connectionStatus={connectionStatus}
-									onClose={
-										chat.chatname !== "broadcast"
-											? () => closeChat(chat.chatname)
-											: null
-									}
-								/>
-							))}
+							{activeChats.map((chat) => {
+								// Check if there are any private chats open
+								const hasPrivateChats = activeChats.some(
+									(c) => c.chatname !== "broadcast"
+								);
+								// Force minimize public chat if private chats are open
+								const shouldMinimizePublicChat =
+									chat.chatname === "broadcast" && hasPrivateChats;
+
+								return (
+									<Chat
+										key={chat.chatname}
+										chatname={chat.chatname}
+										username={user?.username}
+										messages={messages}
+										sendMessage={sendMessage}
+										connectionStatus={connectionStatus}
+										onClose={
+											chat.chatname !== "broadcast"
+												? () => closeChat(chat.chatname)
+												: null
+										}
+										forceMinimized={shouldMinimizePublicChat}
+									/>
+								);
+							})}
 						</div>
 					</div>
-
-					{/* Sidebar */}
-					{showUsers && (
-						<div className="lg:col-span-1">
-							<ActiveUsers
-								users={users}
-								newMessages={newMessages}
-								onUserClick={handleUserClick}
-							/>
-						</div>
-					)}
 				</div>
 			</div>
 		</div>

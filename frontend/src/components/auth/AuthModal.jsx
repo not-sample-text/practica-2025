@@ -79,7 +79,7 @@ const AuthModal = ({
 				</div>
 			)}
 
-			<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+			<div className="mt-4 flex flex-row justify-center items-center gap-2 text-center text-sm text-gray-600 dark:text-gray-400">
 				{mode === "login" ? "Nu ai cont? " : "Ai deja cont? "}
 				<Button
 					onClick={handleModeSwitch}
