@@ -1,6 +1,7 @@
 import React from "react";
+import { DEFAULT_JOIN_ROOM } from "../../../shared/constants";
 
-const ActiveUsers = ({ users, newMessages=[] }) => {
+const ActiveUsers = ({ users, unreadMessages = [], chatContext, setChatContext, loadMessageHistory }) => {
   if (!users || users.length === 0) {
     return <div>No active users.</div>;
   }
@@ -9,8 +10,14 @@ const ActiveUsers = ({ users, newMessages=[] }) => {
       <ul>
         {users.map((user, idx) => (
           <li key={user || idx}>
-            <a href={`http://${user}`}>
-            {user} {newMessages.includes(user) && <button>•</button>}
+            <a onClick={() => {
+              const newContext = chatContext === user ? DEFAULT_JOIN_ROOM : user
+              setChatContext(newContext)
+              loadMessageHistory(newContext)
+              const i = unreadMessages.indexOf(user);
+              if (i !== -1) unreadMessages.splice(i, 1);
+            }}>
+              {user} {unreadMessages.includes(user) && <button>•</button>}
             </a>
           </li>
         ))}

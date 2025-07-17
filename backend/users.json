@@ -74,5 +74,17 @@
   "alex1234": {
     "username": "alex1234",
     "password": "alex1234"
+  },
+  "koma": {
+    "username": "koma",
+    "password": "test333"
+  },
+  "catalin": {
+    "username": "catalin",
+    "password": "test12345"
+  },
+  "Kristian": {
+    "username": "Kristian",
+    "password": "test333"
   }
 }

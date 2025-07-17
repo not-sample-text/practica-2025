@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const Chat = ({
-  chatname = "vio",
+  chatContext,
   username,
   messages,
   sendMessage,
@@ -22,8 +22,7 @@ const Chat = ({
   const handleSendMessage = () => {
     if (newMessage.trim() && connectionStatus === "connected") {
       sendMessage({
-        type: chatname === "broadcast" ? "broadcast" : "private",
-        chatname,
+        type: 'broadcast',
         content: newMessage,
       });
       setNewMessage("");
@@ -84,7 +83,7 @@ const Chat = ({
                 color: "#6c757d",
               }}
             >
-              <strong>{chatname}</strong>
+              <strong>{chatContext}</strong>
             </p>
           </div>
         </header>

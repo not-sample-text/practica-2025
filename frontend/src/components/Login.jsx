@@ -29,6 +29,7 @@ const Login = ({ onLogin }) => {
       });
 
       const data = await response.json();
+      console.log("Data from response: ", data)
 
       if (response.ok && data.success) {
         onLogin(data.username || username);
