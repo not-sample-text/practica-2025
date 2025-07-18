@@ -23,6 +23,8 @@ const AppLayout = () => {
   const [users, setUsers] = useState([]);
   const [newMessages, setNewMessages] = useState([]);
   const websocketRef = useRef(null);
+  const [invite, setInvite] = useState(null);
+  const [gamename, setGamename] = useState("");
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [selectedUser, setSelectedUser] = useState(null); // For private chat
@@ -59,12 +61,15 @@ const AppLayout = () => {
     websocketRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        const { username: from, type, content, chatname } = data;
+        const { username: from, type, content, chatname, game } = data;
         switch (type) {
           case "private":
             setNewMessages((prev) => [...prev, from]);
             setMessages((prev) => [...prev, { type: 'private', content, username: from, chatname }]);
             break;
+          case "invite":
+            setInvite({ from, game });
+            break;  
           case "broadcast":
             setMessages((prev) => [...prev, { type: 'broadcast', content, username: from }]);
             break;

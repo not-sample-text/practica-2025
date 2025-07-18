@@ -31,6 +31,9 @@ class WebSocketManager {
 				case 'broadcast':
 					this.broadcastMessage(token, parsed);
 					break;
+				case 'invite':
+					this.sendInvite(token, parsed.gamewith);
+					break;
 				case 'private':
 					this.privateMessage(token, parsed.chatname, parsed);
 					break;
@@ -60,6 +63,18 @@ class WebSocketManager {
 			const username = auth.getUsernameFromToken(token);
 			senderSocket.send(JSON.stringify({ username, ...message }));
 		}
+	}
+
+	sendInvite(token, gamewith ){
+		const senderUsername = auth.getUsernameFromToken(token);
+		this.clients.forEach((socket, tokenTo) => {
+			if (auth.getUsernameFromToken(tokenTo) !== gamewith) return;
+			if (socket.readyState === socket.OPEN) {
+				socket.send(JSON.stringify({ type: 'invite', from: senderUsername, game: gamename }));
+			}
+
+		});
+
 	}
 
 	broadcastMessage(token, message) {
