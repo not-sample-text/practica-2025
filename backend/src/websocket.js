@@ -82,12 +82,9 @@ class WebSocketManager {
 			if (auth.getUsernameFromToken(tokenTo) === recipient || auth.getUsernameFromToken(tokenTo) === sender) {
 				if (socket.readyState === socket.OPEN) {
 					socket.send(JSON.stringify(messageToSend));
-
 				}
-			}  // skip if not the intended recipient
-
+			}  
 		});
-
 	}
 
 	broadcastMessage(token, message) {
@@ -131,12 +128,11 @@ class WebSocketManager {
 	}
 
 	forceDisconnectClient(username) {
-
 		for (const [token, socket] of this.clients) {
-
+			
 			const clientUsername = auth.getUsernameFromToken(token);
-			if (clientUsername === username) {
 
+			if (clientUsername === username) {
 				// Close the connection if it's still open
 				if ([socket.OPEN, socket.CONNECTING].includes(socket.readyState)) {
 					socket.close(1000, 'Forcefully disconnected by server');

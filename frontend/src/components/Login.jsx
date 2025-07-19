@@ -18,8 +18,6 @@ const Login = ({ onLogin }) => {
     }
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");

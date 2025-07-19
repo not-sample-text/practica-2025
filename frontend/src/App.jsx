@@ -4,7 +4,6 @@ import Login from "./components/Login";
 import Chat from "./components/Chat";
 import ActiveUsers from "./components/ActiveUsers";
 import Header from "./components/Header";
-import Navbar from "./components/Navbar";
 
 const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
@@ -50,9 +49,6 @@ function App() {
   }, [isLoggedIn]);
 
   const connectWebSocket = () => {
-    // if (websocketRef.current) {
-    //   websocketRef.current.close();
-    // }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const port =
@@ -74,10 +70,6 @@ function App() {
 
         switch (data.type) {
           case "private":
-            // setNewMessages((prev) => [
-            //   ...prev,
-            //   username: data.to,
-            // ]);
             setMessages((prev) => [...prev, data]);
             break;
           case "broadcast":
@@ -199,9 +191,6 @@ function App() {
         </div>
 
         <div className="game">
-
-
-
         </div>
 
       </div>

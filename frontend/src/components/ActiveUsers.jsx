@@ -35,9 +35,6 @@ const ActiveUsers = ({ users, newMessages = [], handleSelectChat }) => {
     <div className="overflow-auto container-fluid">
       <h5>Active Users</h5>
       <ul>
-        {/* <li onClick={() => { handleSelectChat('broadcast', newMessages); }}>
-          <button>broadcast</button>
-        </li> */}
         {users.filter((user) => { return user !== loggedInUser })
           .map((user, idx) => (
             <li key={user || idx} onClick={() => { handleSelectChat(user, newMessages )}}>
