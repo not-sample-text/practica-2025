@@ -4,6 +4,8 @@ import Login from "./components/Login";
 import Chat from "./components/Chat";
 import ActiveUsers from "./components/ActiveUsers";
 import Header from "./components/Header";
+import Game from "./components/Game";
+import ChallengeModal from './components/ChallengeModal';
 
 const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
@@ -18,9 +20,12 @@ function App() {
   const [messages, setMessages] = React.useState([]);
   const [connectionStatus, setConnectionStatus] = React.useState("disconnected");
   const [selectedChat, setSelectedChat] = React.useState("broadcast");
+  const [challengedUser, setChallengedUser] = React.useState(null);
+  const [challengeFrom, setChallengeFrom] = React.useState(null);
+  const [isChallengeModalOpen, setIsChallengeModalOpen] = React.useState(false);
+  const [isGameStarted, setGameStarted] = React.useState(false);
 
   const websocketRef = useRef(null);
-
 
   // Get username from JWT token
   const getUsernameFromToken = (token) => {
@@ -77,6 +82,9 @@ function App() {
             break;
           case "usernames":
             setUsers(['broadcast', ...data.content]);
+            break;
+          case "challenge":
+            manageChallenge(data);
             break;
           case 'error':
             console.error('server error:', error);
@@ -165,20 +173,82 @@ function App() {
   };
 
   const handleSelectChat = (chatname, messages) => {
-      setSelectedChat(chatname);
-      setMessages( [ ...messages]); 
+    setSelectedChat(chatname);
+    setMessages([...messages]);
   }
+
+  const manageChallenge = (challenge) => {
+    switch(challenge.status) {
+      case 'initiated':
+        openModal(true);
+        setChallengeFrom(challenge.from);
+        break;
+      case 'accepted':
+        alert(`${challenge.from} has accepted your challenge`);
+        // TODO: start game
+        break;
+      case 'rejected':
+        alert(`${challenge.from} has rejected your challenge`);
+        challengedUser(null);
+        break;
+    }
+  }
+
+  const sendChallenge = (user, status) => {
+    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+
+      const challenge = {
+        type: 'challenge',
+        from: username,
+        to: user,
+        status: status
+      }
+
+      websocketRef.current.send(JSON.stringify(challenge));
+    }
+  }
+
+  const handleChallengeUser = (user) => {
+    sendChallenge(user, 'initiated');
+    // setIsChallenged(true);
+    setChallengedUser(user);
+  }
+
+  const openModal = () => setIsChallengeModalOpen(true);
+  const closeModal = () => setIsChallengeModalOpen(false);
+  const handleAccept = () => {
+    sendChallenge(challengeFrom, 'accepted');
+    // startGame()???
+    closeModal();
+  };
+  const handleReject = () => {
+    sendChallenge(challengeFrom, 'rejected');
+    closeModal();
+  };
+
 
   return isLoggedIn ? (
     <div className="main light">
+      {isChallengeModalOpen &&
+        <ChallengeModal
+          user={challengeFrom}
+          isOpen={isChallengeModalOpen}
+          onClose={closeModal}
+          onAccept={handleAccept}
+          onReject={handleReject}
+        />}
       <div className="grid">
         <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
       </div>
       <div className="grid" >
         <div className="grid">
-          <ActiveUsers users={users} newMessages={messages} handleSelectChat={handleSelectChat}/>
+          <ActiveUsers
+            users={users}
+            newMessages={messages}
+            handleSelectChat={handleSelectChat}
+            handleChallengeUser={handleChallengeUser}
+          />
           <div>
-            <h5>Chat</h5>
             <Chat
               chatname={selectedChat}
               username={username}
@@ -190,16 +260,22 @@ function App() {
 
         </div>
 
-        <div className="game">
+        <div className="game-container d-flex-centerX d-flex-column" style={{ backgroundColor: "rgb(29, 36, 50)", border: "2px solid rgba(102, 112, 133, 1)" }}>
+          <Game
+            user={challengedUser}
+            socket={websocketRef}
+
+          />
+
         </div>
 
       </div>
     </div>
   ) : (
     <>
-    <Login onLogin={handleLogin} />
+      <Login onLogin={handleLogin} />
     </>
-    
+
   );
 }
 

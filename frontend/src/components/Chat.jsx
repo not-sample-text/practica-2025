@@ -56,7 +56,7 @@ const Chat = ({
         display: "flex",
         flexDirection: "row",
         maxWidth: "100%",
-        minWidth: '400px',
+        minWidth: '385px',
         margin: "0 auto",
         position: "relative",
         overflow: "hidden", // Prevent horizontal scrolling
@@ -71,6 +71,7 @@ const Chat = ({
           transform: isChatHidden ? "translateX(-100%)" : "translateX(0)",
           transition: "transform 0.3s ease-in-out",
           position: "relative",
+          border: "2px solid rgba(102, 112, 133, 1)"
         }}
       >
         {/* Header */}
@@ -81,7 +82,7 @@ const Chat = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            backgroundColor: "#ffffff",
+            backgroundColor: "rgb(29, 36, 50)",
             boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             minHeight: "70px",
           }}
@@ -91,7 +92,7 @@ const Chat = ({
               style={{
                 margin: "0.25rem 0 0 0",
                 fontSize: "1rem",
-                color: "#6c757d",
+                color: "#f9f9f9ff",
               }}
             >
               <strong>{chatname}</strong>
@@ -105,7 +106,7 @@ const Chat = ({
             flex: 1,
             padding: "1rem 2rem",
             overflowY: "auto",
-            backgroundColor: "#f8f9fa",
+            backgroundColor: "rgba(50, 62, 87, 1)",
             minHeight: 0, // Important for flex scrolling
           }}
         >
@@ -207,7 +208,7 @@ const Chat = ({
           style={{
             padding: "1rem 2rem",
             borderTop: "1px solid #dee2e6",
-            backgroundColor: "#ffffff",
+            backgroundColor: "rgb(29, 36, 50)",
             boxShadow: "0 -2px 4px rgba(0,0,0,0.1)",
           }}
         >
@@ -240,10 +241,10 @@ const Chat = ({
                   fontSize: "1rem",
                   marginBottom: '0px',
                   outline: "none",
-                  color: "#212529",
+                  color: "#ffffffff",
                   transition: "border-color 0.2s",
                   backgroundColor:
-                    connectionStatus !== "connected" ? "#f8f9fa" : "#ffffff",
+                    connectionStatus !== "connected" ? "#4e6882ff" : "#4e6882ff",
                 }}
                 onFocus={(e) => (e.target.style.borderColor = "#ff9900ff")}
                 onBlur={(e) => (e.target.style.borderColor = "#dee2e6")}

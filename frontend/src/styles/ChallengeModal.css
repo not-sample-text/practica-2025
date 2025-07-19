@@ -1,0 +1,101 @@
+
+
+/* ChallengeModal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-container {
+  background: var(--card-background-color, #1a1a1a);
+  border-radius: 0.5rem;
+  width: min(90vw, 400px);
+  border: 1px solid var(--card-border-color, #2a2a2a);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  overflow: hidden; 
+}
+
+.modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--card-border-color, #2a2a2a);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--header-background-color, #161616);
+}
+
+.modal-title {
+  margin: 0;
+  color: var(--heading-color, #e0e0e0);
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: var(--muted-color, #858585);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: var(--contrast-color, #fff);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  color: var(--text-color, #c9c9c9);
+  background-color: var(--modal-body-bg, #1e1e1e); 
+  border-bottom: 1px solid var(--card-border-color, #2a2a2a);
+}
+
+.modal-body p {
+  margin: 0;
+}
+
+.modal-footer {
+  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  background-color: var(--modal-footer-bg, #1e1e1e); 
+}
+
+.action-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.reject-button {
+  background: var(--button-background, #2a2a2a);
+  color: var(--button-color, #e0e0e0);
+  border: 1px solid var(--button-border-color, #3a3a3a);
+}
+
+.reject-button:hover {
+  background: var(--button-hover-background, #3a3a3a);
+}
+
+.accept-button {
+  background: var(--primary, #4361ee);
+  color: var(--primary-inverse, white);
+  border: none;
+}
+
+.accept-button:hover {
+  background: var(--primary-hover, #3a56d4);
+}

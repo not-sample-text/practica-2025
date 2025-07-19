@@ -47,6 +47,9 @@ class WebSocketManager {
 				case 'private':
 					this.privateMessage(token, parsed);
 					break;
+				case 'challenge':
+					this.sendChallenge(parsed);
+					break;
 				default:
 					console.log(`Unknown message type: ${message}`);
 					return ctx.websocket.send(JSON.stringify({
@@ -83,7 +86,7 @@ class WebSocketManager {
 				if (socket.readyState === socket.OPEN) {
 					socket.send(JSON.stringify(messageToSend));
 				}
-			}  
+			}
 		});
 	}
 
@@ -114,6 +117,21 @@ class WebSocketManager {
 		})
 	}
 
+	sendChallenge(challenge) {
+
+		const recipient = challenge.to;
+		// send challenge to the requested user
+		(this.clients).forEach((socket, tokenTo) => {
+			if (auth.getUsernameFromToken(tokenTo) === recipient) {
+				if (socket.readyState === socket.OPEN) {
+					socket.send(JSON.stringify(challenge));
+				}
+			}
+		});
+
+	}
+
+
 	userAlreadyConnected(token) {
 		const currentUsername = auth.getUsernameFromToken(token);
 
@@ -129,7 +147,7 @@ class WebSocketManager {
 
 	forceDisconnectClient(username) {
 		for (const [token, socket] of this.clients) {
-			
+
 			const clientUsername = auth.getUsernameFromToken(token);
 
 			if (clientUsername === username) {

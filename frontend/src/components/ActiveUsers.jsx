@@ -17,7 +17,7 @@ const getUsernameFromToken = (token) => {
   }
 };
 
-const ActiveUsers = ({ users, newMessages = [], handleSelectChat }) => {
+const ActiveUsers = ({ users, newMessages = [], handleSelectChat, handleChallengeUser }) => {
 
   const loggedInUser = getUsernameFromToken(getTokenFromCookie());
 
@@ -27,20 +27,42 @@ const ActiveUsers = ({ users, newMessages = [], handleSelectChat }) => {
 
   function userHasNewMessages(user) {
     // pentru ca sa nu apara notificare pt user daca mesajul a fost trimis pe broadcast
-    return newMessages.find((message) => ((message.sender === user && message.type !== 'broadcast') || 
-                            (message.sender !== loggedInUser && message.to === user && message.type === 'broadcast') )) !== undefined;
+    return newMessages.find((message) => ((message.sender === user && message.type !== 'broadcast') ||
+      (message.sender !== loggedInUser && message.to === user && message.type === 'broadcast'))) !== undefined;
   }
 
   return (
-    <div className="overflow-auto container-fluid">
+    <div className="overflow-auto container-fluid " >
       <h5>Active Users</h5>
       <ul>
         {users.filter((user) => { return user !== loggedInUser })
           .map((user, idx) => (
-            <li key={user || idx} onClick={() => { handleSelectChat(user, newMessages )}}>
-              <button>
-                {user} {userHasNewMessages(user) && <p>•</p>}
-              </button>
+            <li key={user || idx} style={{ listStyle: 'none', width: '50px' }} >
+
+              <div className="d-flex-row d-flex-centerX">
+                <p style={{ transform: "translateY(80%) translateX(70%) scale(0.7)" }}>&nbsp;🟢</p>
+                <div>
+                  <button className="primary"
+                    style={{
+                      height: '20px',
+                      fontSize: '10px',
+                      textAlign: 'center',
+                      padding: '2px',
+                      transform: "translateY(90%) translateX(90%) scale(1.4)"
+                    }}
+                    onClick={() => { handleChallengeUser(user) }}
+                  >
+                    challenge user
+                  </button>
+                  <button className="secondary" style={{ display: "flex", width: '130px', height:'70px'}}
+                    onClick={() => { handleSelectChat(user, newMessages) }}
+                  >
+                    {user} {userHasNewMessages(user) && <p>&nbsp;❗️</p>}
+                  </button>
+                </div>
+
+              </div>
+
             </li>
           ))}
       </ul>

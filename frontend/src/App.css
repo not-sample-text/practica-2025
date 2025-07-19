@@ -18,3 +18,15 @@
   display: flex;
   flex-direction: row-reverse;
 }
+
+.d-flex-centerY {
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */
+}
+
+.d-flex-centerX {
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+}
