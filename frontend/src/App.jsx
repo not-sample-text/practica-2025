@@ -16,14 +16,29 @@ function App() {
   const [username, setUsername] = React.useState(null);
   const [users, setUsers] = React.useState([]);
   const [newMessages, setNewMessages] = React.useState([]);
-  const websocketRef = useRef(null);
   const [messages, setMessages] = React.useState([]);
-  const [connectionStatus, setConnectionStatus] =
-    React.useState("disconnected");
+  const [connectionStatus, setConnectionStatus] = React.useState("disconnected");
+  const [selectedChat, setSelectedChat] = React.useState("broadcast");
+
+  const websocketRef = useRef(null);
+
+
+  // Get username from JWT token
+  const getUsernameFromToken = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.username || "Unknown User";
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      return "Unknown User";
+    }
+  };
 
   // WebSocket connection effect
   useEffect(() => {
     if (isLoggedIn) {
+      // set username again when the page reloads(not only at log in)
+      setUsername(getUsernameFromToken(getTokenFromCookie()));
       connectWebSocket();
     } else {
       disconnectWebSocket();
@@ -55,29 +70,33 @@ function App() {
 
     websocketRef.current.onmessage = (event) => {
       try {
-        const { username, type, content } = JSON.parse(event.data);
-        switch (type) {
+        const data = JSON.parse(event.data);
+
+        switch (data.type) {
           case "private":
-            setNewMessages((prev) => [
-              ...prev,
-              username,
-            ]);
+            // setNewMessages((prev) => [
+            //   ...prev,
+            //   username: data.to,
+            // ]);
+            setMessages((prev) => [...prev, data]);
             break;
           case "broadcast":
-            setMessages((prev) => [...prev, { content, username }]);
+            setMessages((prev) => [...prev, data]);
             break;
           case "usernames":
-            setUsers(content);
+            setUsers(['broadcast', ...data.content]);
+            break;
+          case 'error':
+            console.error('server error:', error);
             break;
           default:
-            console.warn("Unknown message type:", { username, type, content });
+            console.warn("Unknown message type:", data);
             return;
         }
       } catch (e) {
         console.error("Error parsing WebSocket message:", e);
         return;
       }
-      console.log("Received message:", event);
     };
 
     websocketRef.current.onclose = () => {
@@ -111,7 +130,7 @@ function App() {
   };
 
   const handleLogin = (loggedInUsername) => {
-    setUsername(loggedInUsername);
+    // setUsername(loggedInUsername);
     setIsLoggedIn(true);
     setMessages([]); // Clear messages on login
   };
@@ -153,29 +172,34 @@ function App() {
     }
   };
 
+  const handleSelectChat = (chatname, messages) => {
+      setSelectedChat(chatname);
+      setMessages( [ ...messages]); 
+  }
+
   return isLoggedIn ? (
-    <div className="main">
+    <div className="main light">
       <div className="grid">
         <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
       </div>
-      <div className="grid">
+      <div className="grid" >
         <div className="grid">
-          <ActiveUsers users={users} newMessages={newMessages} />
+          <ActiveUsers users={users} newMessages={messages} handleSelectChat={handleSelectChat}/>
           <div>
             <h5>Chat</h5>
             <Chat
-            username={username}
-            onLogout={handleLogout}
-            messages={messages}
-            sendMessage={sendMessage}
-            connectionStatus={connectionStatus}
-          />
+              chatname={selectedChat}
+              username={username}
+              messages={messages}
+              sendMessage={sendMessage}
+              connectionStatus={connectionStatus}
+            />
           </div>
-          
+
         </div>
 
         <div className="game">
-          
+
 
 
         </div>
@@ -183,7 +207,10 @@ function App() {
       </div>
     </div>
   ) : (
+    <>
     <Login onLogin={handleLogin} />
+    </>
+    
   );
 }
 

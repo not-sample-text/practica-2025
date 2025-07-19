@@ -12,16 +12,16 @@ class WebSocketManager {
 		const token = ctx.cookies.get("token");
 
 		if (!auth.isValidToken(token)) {
-			ctx.websocket.send("token-Invalid or expired token");
+			ctx.websocket.send("Invalid or expired token");
 			ctx.websocket.close();
 			return;
 		}
 
 		if (this.userAlreadyConnected(token)) {
-            const currentUsername = auth.getUsernameFromToken(token);
-            console.log(`User  ${currentUsername} is already connected. Disconnecting previous session.`);
-            this.forceDisconnectClient(currentUsername); 
-        }
+			const currentUsername = auth.getUsernameFromToken(token);
+			console.log(`User  ${currentUsername} is already connected. Disconnecting previous session.`);
+			this.forceDisconnectClient(currentUsername);
+		}
 
 		(this.clients).set(token, ctx.websocket);
 		console.log(`Socket client «${token}» added`);
@@ -45,7 +45,7 @@ class WebSocketManager {
 					this.broadcastMessage(token, parsed);
 					break;
 				case 'private':
-					this.privateMessage(token, parsed.chatname, parsed);
+					this.privateMessage(token, parsed);
 					break;
 				default:
 					console.log(`Unknown message type: ${message}`);
@@ -66,21 +66,42 @@ class WebSocketManager {
 		});
 
 	}
-	privateMessage(token, chatname, message) {
+	privateMessage(token, message) {
+
+		const sender = auth.getUsernameFromToken(token); // username expeditor
+		const recipient = message.to;
+		const messageToSend = {
+			type: 'private',
+			sender: sender,
+			to: recipient,
+			content: message.content
+		};
+
+		// send message to recipient and sender
 		(this.clients).forEach((socket, tokenTo) => {
-			if (auth.getUsernameFromToken(tokenTo) !== chatname) return; // skip if not the intended recipient
-			if (socket.readyState === socket.OPEN) {
-				const username = auth.getUsernameFromToken(token); // username expeditor
-				socket.send(JSON.stringify({ username, ...message }));
-			}
+			if (auth.getUsernameFromToken(tokenTo) === recipient || auth.getUsernameFromToken(tokenTo) === sender) {
+				if (socket.readyState === socket.OPEN) {
+					socket.send(JSON.stringify(messageToSend));
+
+				}
+			}  // skip if not the intended recipient
+
 		});
+
 	}
 
 	broadcastMessage(token, message) {
-		(this.clients).forEach((client) => {
+		const username = auth.getUsernameFromToken(token); // username expeditor
+		const messageToSend = {
+			type: 'broadcast',
+			sender: username,
+			to: 'broadcast',
+			content: message.content
+		}
+
+		this.clients.forEach((client) => {
 			if (client.readyState === client.OPEN) {
-				const username = auth.getUsernameFromToken(token); // username expeditor
-				client.send(JSON.stringify({ username, ...message }));
+				client.send(JSON.stringify(messageToSend));
 			}
 		});
 	}
@@ -111,23 +132,23 @@ class WebSocketManager {
 
 	forceDisconnectClient(username) {
 
-        for (const [token, socket] of this.clients) {
+		for (const [token, socket] of this.clients) {
 
-            const clientUsername = auth.getUsernameFromToken(token);
-            if (clientUsername === username) {
+			const clientUsername = auth.getUsernameFromToken(token);
+			if (clientUsername === username) {
 
-                // Close the connection if it's still open
-                if ([socket.OPEN, socket.CONNECTING].includes(socket.readyState)) {
-                    socket.close(1000, 'Forcefully disconnected by server');
-                }
+				// Close the connection if it's still open
+				if ([socket.OPEN, socket.CONNECTING].includes(socket.readyState)) {
+					socket.close(1000, 'Forcefully disconnected by server');
+				}
 
-                this.clients.delete(token); 
-                console.log(`Forcefully disconnected client ${username}`);
+				this.clients.delete(token);
+				console.log(`Forcefully disconnected client ${username}`);
 
-                break; 
-            }
-        }
-    }
+				break;
+			}
+		}
+	}
 
 }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const Chat = ({
-  chatname = "broadcast",
+  chatname,
   username,
   messages,
   sendMessage,
@@ -10,6 +10,15 @@ const Chat = ({
   const [newMessage, setNewMessage] = useState("");
   const [isChatHidden, setIsChatHidden] = useState(false);
   const messagesEndRef = useRef(null);
+
+  let filteredMessages = messages.filter((message) => {
+    if (message.type === 'broadcast' && chatname === 'broadcast')
+      return true;
+
+    return (message.to === chatname && message.sender === username) ||
+      (message.to === username && message.sender === chatname);
+
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,7 +32,7 @@ const Chat = ({
     if (newMessage.trim() && connectionStatus === "connected") {
       sendMessage({
         type: chatname === "broadcast" ? "broadcast" : "private",
-        chatname,
+        to: chatname,
         content: newMessage,
       });
       setNewMessage("");
@@ -43,10 +52,11 @@ const Chat = ({
   return (
     <div
       style={{
-        height: "85vh",
+        height: "80vh",
         display: "flex",
         flexDirection: "row",
         maxWidth: "100%",
+        minWidth: '400px',
         margin: "0 auto",
         position: "relative",
         overflow: "hidden", // Prevent horizontal scrolling
@@ -106,7 +116,7 @@ const Chat = ({
               width: "100%",
             }}
           >
-            {messages.length === 0 ? (
+            {filteredMessages.length === 0 ? (
               <div
                 style={{
                   textAlign: "center",
@@ -118,11 +128,9 @@ const Chat = ({
                 <p>💬 Niciun mesaj încă. Începe conversația.!</p>
               </div>
             ) : (
-              messages.map((message, index) => {
-                const isSystemMessage = message.content.includes(
-                  "Invalid or expired token"
-                );
-                const isCurrentUser = message.username === username;
+              filteredMessages.map((message, index) => {
+                const isSystemMessage = message.content === "Invalid or expired token";
+                const isCurrentUser = message.sender === username;
 
                 return (
                   <div
@@ -140,19 +148,19 @@ const Chat = ({
                         backgroundColor: isSystemMessage
                           ? "#ffebee"
                           : isCurrentUser
-                          ? "#007bff"
-                          : "#ffffff",
+                            ? "#007bff"
+                            : "#ffffff",
                         color: isSystemMessage
                           ? "#c62828"
                           : isCurrentUser
-                          ? "#ffffff"
-                          : "#212529",
+                            ? "#ffffff"
+                            : "#212529",
                         borderRadius: "12px",
                         border: isSystemMessage
                           ? "1px solid #ffcdd2"
                           : isCurrentUser
-                          ? "none"
-                          : "1px solid #dee2e6",
+                            ? "none"
+                            : "1px solid #dee2e6",
                         boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                         wordWrap: "break-word",
                       }}
@@ -173,7 +181,7 @@ const Chat = ({
                               opacity: 0.9,
                             }}
                           >
-                            {isCurrentUser ? "You" : message.username}
+                            {isCurrentUser ? "You" : message.sender}
                           </div>
                           <div
                             style={{
@@ -230,6 +238,7 @@ const Chat = ({
                   border: "2px solid #ff9f05ff",
                   borderRadius: "25px",
                   fontSize: "1rem",
+                  marginBottom: '0px',
                   outline: "none",
                   color: "#212529",
                   transition: "border-color 0.2s",
