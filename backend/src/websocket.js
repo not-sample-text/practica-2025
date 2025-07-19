@@ -19,28 +19,32 @@ class WebSocketManager {
 		this.clients.set(token, ctx.websocket);
 		this.sendUsernames();
 
-		ctx.websocket.on("message", (message) => {
-			let parsed = { type: 'message', chatname: "", content: message.toString() };
-			try {
-				parsed = JSON.parse(message.toString());
-			} catch (e) { }
-			switch (parsed.type) {
-				case 'disconnect':
-					ctx.websocket.close();
-					break;
-				case 'broadcast':
-					this.broadcastMessage(token, parsed);
-					break;
-				case 'invite':
-					this.sendInvite(token, parsed.gamewith);
-					break;
-				case 'private':
-					this.privateMessage(token, parsed.chatname, parsed);
-					break;
-				default:
-					ctx.websocket.send(JSON.stringify({ type: 'error', message: `Unknown message type: ${parsed.type}` }));
-			}
-		});
+	ctx.websocket.on("message", (message) => {
+		let parsed = { type: 'message', chatname: "", content: message.toString() };
+		try {
+			parsed = JSON.parse(message.toString());
+		} catch (e) { }
+		switch (parsed.type) {
+			case 'disconnect':
+				ctx.websocket.close();
+				break;
+			case 'broadcast':
+				this.broadcastMessage(token, parsed);
+				break;
+			case 'invite':
+				this.sendInvite(token, parsed.gamewith, parsed.gamename);
+				break;
+			case 'invitationresponse':
+				this.invitationResponse(token, parsed.gamewith, parsed.response);
+				break;
+
+			case 'private':
+				this.privateMessage(token, parsed.chatname, parsed);
+				break;
+			default:
+				ctx.websocket.send(JSON.stringify({ type: 'error', message: `Unknown message type: ${parsed.type}` }));
+		}
+	});
 
 		ctx.websocket.on("close", () => {
 			this.clients.delete(token);
@@ -65,16 +69,14 @@ class WebSocketManager {
 		}
 	}
 
-	sendInvite(token, gamewith ){
+	sendInvite(token, gamewith, gamename = "") {
 		const senderUsername = auth.getUsernameFromToken(token);
 		this.clients.forEach((socket, tokenTo) => {
 			if (auth.getUsernameFromToken(tokenTo) !== gamewith) return;
 			if (socket.readyState === socket.OPEN) {
 				socket.send(JSON.stringify({ type: 'invite', from: senderUsername, game: gamename }));
 			}
-
 		});
-
 	}
 
 	broadcastMessage(token, message) {
@@ -92,6 +94,16 @@ class WebSocketManager {
 		this.clients.forEach((client) => {
 			if (client.readyState === client.OPEN) {
 				client.send(JSON.stringify({ type: 'usernames', content }));
+			}
+		});
+	}
+
+	invitationResponse(token, gameWith, response) {
+		const senderUsername = auth.getUsernameFromToken(token);
+		this.clients.forEach((socket, tokenTo) => {
+			if (auth.getUsernameFromToken(tokenTo) !== gameWith) return;
+			if (socket.readyState === socket.OPEN) {
+				socket.send(JSON.stringify({ type: 'invitationresponse', from: senderUsername, response }));
 			}
 		});
 	}

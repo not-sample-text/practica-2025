@@ -82,5 +82,13 @@
   "alebercu": {
     "username": "alebercu",
     "password": "a123454321"
+  },
+  "mara": {
+    "username": "mara",
+    "password": "m123454321"
+  },
+  "mara1": {
+    "username": "mara1",
+    "password": "m1234543211"
   }
 }
