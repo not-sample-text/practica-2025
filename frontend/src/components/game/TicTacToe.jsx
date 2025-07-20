@@ -113,7 +113,7 @@ function Board({squares, onPlay, gameWith, mySymbol, isMyTurn, setIsMyTurn, sock
   if (winner) {
     if (winner === mySymbol) {
       status = "You won!";
-      emoji = "🎉";
+      emoji = "🤩";
     } else {
       status = "Opponent won!";
       emoji = "😢";
