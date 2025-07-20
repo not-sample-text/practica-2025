@@ -41,6 +41,10 @@ class WebSocketManager {
 			case 'private':
 				this.privateMessage(token, parsed.chatname, parsed);
 				break;
+
+			case 'move':
+				this.handleMove(token, parsed.gameWith, parsed.move);
+				break;
 			default:
 				ctx.websocket.send(JSON.stringify({ type: 'error', message: `Unknown message type: ${parsed.type}` }));
 		}
@@ -75,6 +79,19 @@ class WebSocketManager {
 			if (auth.getUsernameFromToken(tokenTo) !== gamewith) return;
 			if (socket.readyState === socket.OPEN) {
 				socket.send(JSON.stringify({ type: 'invite', from: senderUsername, game: gamename }));
+			}
+		});
+	}
+
+	handleMove(token, gameWith, move) {	
+		const senderUsername = auth.getUsernameFromToken(token);
+		this.clients.forEach((socket, tokenTo) => {
+			if (auth.getUsernameFromToken(tokenTo) !== gameWith) return;
+			if (socket.readyState === socket.OPEN) {
+				socket.send(JSON.stringify({
+					type: 'move',
+					move
+				}));
 			}
 		});
 	}

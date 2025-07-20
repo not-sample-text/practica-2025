@@ -1,0 +1,64 @@
+.square {
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 4px;
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 60px;
+  margin: 4px;
+  padding: 0;
+  text-align: center;
+  width: 70px;
+  height: 70px;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.square:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  border-color: #666;
+}
+
+.square:disabled {
+  cursor: not-allowed;
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.game-board {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.board-row {
+  display: flex;
+  justify-content: center;
+}
+
+.status {
+  margin: 20px 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.winner-emoji {
+  display: inline-block;
+  font-size: 32px;
+  margin-left: 8px;
+  animation: bounce 1s ease infinite;
+}

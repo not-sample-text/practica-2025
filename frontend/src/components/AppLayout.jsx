@@ -30,6 +30,7 @@ const AppLayout = () => {
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [selectedUser, setSelectedUser] = useState(null); // For private chat
+  const [isMyTurn, setIsMyTurn] = useState(true); // Track if it's the user's turn in the game
 
   useEffect(() => {
     const token = getTokenFromCookie();
@@ -58,6 +59,7 @@ const AppLayout = () => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const port = location.port === "80" || location.port === "443" ? "" : `:${location.port}`;
     const wsUrl = `${protocol}//${window.location.hostname}${port}/ws`;
+    //const wsUrl = `${protocol}//${window.location.hostname}$3000/ws`;
     websocketRef.current = new window.WebSocket(wsUrl);
     websocketRef.current.onopen = () => setConnectionStatus("connected");
     websocketRef.current.onmessage = (event) => {
@@ -132,6 +134,8 @@ const AppLayout = () => {
   // Send invite via websocket
   const handleSendInvite = (user, game = 'tictactoe') => {
     if (websocketRef.current && websocketRef.current.readyState === window.WebSocket.OPEN) {
+      // Add inviter=true for the player sending the invite
+      window.history.pushState({}, '', window.location.pathname + '?inviter=true');
       websocketRef.current.send(JSON.stringify({ type: 'invite', gamewith: user, gamename: game }));
     }
   };
@@ -143,6 +147,8 @@ const AppLayout = () => {
     }
 
     if (response === "accept") {
+      // Add inviter=false for the player accepting the invite
+      window.history.pushState({}, '', window.location.pathname + '?inviter=false');
       setActiveGame({ opponent: from, game: gamename });
       setGamename(gamename);
     }
@@ -225,7 +231,7 @@ const AppLayout = () => {
               padding: 0,
               margin: 0
             }}>
-              <Game gameWith={activeGame.opponent} />
+              <Game gameWith={activeGame.opponent} socket={websocketRef.current}  />
             </div>
           )}
         </div>
