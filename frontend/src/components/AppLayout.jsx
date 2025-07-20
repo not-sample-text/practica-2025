@@ -3,6 +3,7 @@ import Chat from "./chat/Chat";
 import ActiveUsers from "./chat/ActiveUsers";
 import Header from "./Header";
 import Navbar from "./Navbar";
+import Game from "./game/TicTacToe";
 
 const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
@@ -24,6 +25,7 @@ const AppLayout = () => {
   const [newMessages, setNewMessages] = useState([]);
   const websocketRef = useRef(null);
   const [invite, setInvite] = useState(null);
+  const [activeGame, setActiveGame] = useState(null);
   const [gamename, setGamename] = useState("");
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
@@ -61,15 +63,28 @@ const AppLayout = () => {
     websocketRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        const { username, from, type, content, chatname, game } = data;
+        const { username, from,gamewith,type, content, chatname, game, response, message } = data;
         switch (type) {
           case "private":
             setNewMessages((prev) => [...prev, username]);
             setMessages((prev) => [...prev, { type: 'private', content, username, chatname }]);
             break;
           case "invite":
-            // Use 'from' if present, else fallback to 'username'
             setInvite({ from: from || username, game });
+            break;
+          case "invitationresponse":
+            if (response === "decline" && message) {
+              // Show popup/alert to sender only
+              alert(message);
+            }else if (response === "accept") {
+              setActiveGame({ opponent: gamewith, game });
+              setGamename(game);
+            }
+            setInvite(null);
+            break;
+          case "startgame":
+            setActiveGame({ opponent: from, game });
+            setGamename(game);
             break;  
           case "broadcast":
             setMessages((prev) => [...prev, { type: 'broadcast', content, username }]);
@@ -126,6 +141,11 @@ const AppLayout = () => {
     if (websocketRef.current && websocketRef.current.readyState === window.WebSocket.OPEN) {
       websocketRef.current.send(JSON.stringify({ type: 'invitationresponse', gamewith: from, response }));
     }
+
+    if (response === "accept") {
+      setActiveGame({ opponent: from, game: gamename });
+      setGamename(gamename);
+    }
     setInvite(null);
   };
 
@@ -180,17 +200,34 @@ const AppLayout = () => {
         <aside style={{ width: 250, background: '#f5f6fa', borderRight: '1px solid #e0e0e0', padding: '1rem 0', overflowY: 'auto' }}>
           <ActiveUsers users={users} newMessages={newMessages} onUserClick={setSelectedUser} selectedUser={selectedUser} />
         </aside>
-        {/* Chat Area, now directly next to users */}
+        {/* Main area: Chat (left) and Game (right) */}
         <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-          <Chat
-            username={username}
-            messages={messages}
-            sendMessage={sendMessage}
-            connectionStatus={connectionStatus}
-            users={users}
-            selectedUser={selectedUser}
-            setSelectedUser={setSelectedUser}
-          />
+          <div style={{ flex: 1, display: 'flex', minHeight: 0, padding: 0, margin: 0 }}>
+            <Chat
+              username={username}
+              messages={messages}
+              sendMessage={sendMessage}
+              connectionStatus={connectionStatus}
+              users={users}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+            />
+          </div>
+          {/* Game appears on the right side when activeGame is set */}
+          {activeGame && activeGame.game === 'tictactoe' && (
+            <div style={{
+              flex: 1,
+              background: '#fff',
+              borderLeft: '1px solid #e0e0e0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+              margin: 0
+            }}>
+              <Game gameWith={activeGame.opponent} />
+            </div>
+          )}
         </div>
       </div>
     </div>

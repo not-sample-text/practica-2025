@@ -99,14 +99,49 @@ class WebSocketManager {
 	}
 
 	invitationResponse(token, gameWith, response) {
-		const senderUsername = auth.getUsernameFromToken(token);
-		this.clients.forEach((socket, tokenTo) => {
-			if (auth.getUsernameFromToken(tokenTo) !== gameWith) return;
-			if (socket.readyState === socket.OPEN) {
-				socket.send(JSON.stringify({ type: 'invitationresponse', from: senderUsername, response }));
-			}
-		});
+	const senderUsername = auth.getUsernameFromToken(token);
+	if (response === 'decline') {
+	  // Notify only the sender with a custom message
+	  this.clients.forEach((socket, tokenTo) => {
+		if (auth.getUsernameFromToken(tokenTo) !== gameWith) return;
+		if (socket.readyState === socket.OPEN) {
+		  socket.send(JSON.stringify({
+			type: 'invitationresponse',
+			from: senderUsername,
+			response,
+			message: `${senderUsername} declined your invite.`
+		  }));
+		}
+	  });
+	  return;
 	}
+  // Notify the invitee with invitationresponse (for possible UI logic)
+  this.clients.forEach((socket, tokenTo) => {
+	if (auth.getUsernameFromToken(tokenTo) !== gameWith) return;
+	if (socket.readyState === socket.OPEN) {
+	  socket.send(JSON.stringify({ type: 'invitationresponse', from: senderUsername, response }));
+	}
+  });
+
+  // If accepted, notify both users to start the game
+  if (response === "accept") {
+	// Notify the invitee
+	this.clients.forEach((socket, tokenTo) => {
+	  if (auth.getUsernameFromToken(tokenTo) === gameWith && socket.readyState === socket.OPEN) {
+		socket.send(JSON.stringify({ type: 'startgame', from: senderUsername, game: 'tictactoe' }));
+	  }
+	});
+	// Notify the inviter
+	this.clients.forEach((socket, tokenTo) => {
+	  if (auth.getUsernameFromToken(tokenTo) === senderUsername && socket.readyState === socket.OPEN) {
+		socket.send(JSON.stringify({ type: 'startgame', from: gameWith, game: 'tictactoe' }));
+	  }
+	});
+  }
+  }
 }
+
+
+
 
 module.exports = WebSocketManager;
