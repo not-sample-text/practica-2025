@@ -11,38 +11,40 @@ const getTokenFromCookie = () => {
   const match = document.cookie.match(/token=([^;]+)/);
   return match ? match[1] : null;
 };
-
+// Get username from JWT token
+const getUsernameFromToken = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.username || "Unknown User";
+    // eslint-disable-next-line no-unused-vars
+  } catch (error) {
+    return "Unknown User";
+  }
+};
 function App() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(!!getTokenFromCookie());
-  const [username, setUsername] = React.useState(null);
+
   const [users, setUsers] = React.useState([]);
-  const [newMessages, setNewMessages] = React.useState([]);
   const [messages, setMessages] = React.useState([]);
   const [connectionStatus, setConnectionStatus] = React.useState("disconnected");
   const [selectedChat, setSelectedChat] = React.useState("broadcast");
   const [challengedUser, setChallengedUser] = React.useState(null);
   const [challengeFrom, setChallengeFrom] = React.useState(null);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = React.useState(false);
-  const [isGameStarted, setGameStarted] = React.useState(false);
+  const [isGameStarted, setIsGameStarted] = React.useState(false);
+  const [user1, setUser1] = React.useState(null);
+  const [user2, setUser2] = React.useState(null);
+  const username = getUsernameFromToken(getTokenFromCookie());
 
   const websocketRef = useRef(null);
 
-  // Get username from JWT token
-  const getUsernameFromToken = (token) => {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.username || "Unknown User";
-      // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      return "Unknown User";
-    }
-  };
+
 
   // WebSocket connection effect
   useEffect(() => {
     if (isLoggedIn) {
       // set username again when the page reloads(not only at log in)
-      setUsername(getUsernameFromToken(getTokenFromCookie()));
+      // setUsername();
       connectWebSocket();
     } else {
       disconnectWebSocket();
@@ -52,6 +54,11 @@ function App() {
       disconnectWebSocket();
     };
   }, [isLoggedIn]);
+
+  // useEffect(() => {
+  //   loggedInUser = username;
+
+  // }, [username]);
 
   const connectWebSocket = () => {
 
@@ -178,18 +185,27 @@ function App() {
   }
 
   const manageChallenge = (challenge) => {
-    switch(challenge.status) {
+    switch (challenge.status) {
       case 'initiated':
+        // print('initiated:', username)
         openModal(true);
         setChallengeFrom(challenge.from);
+        // daca status e initiated at. utilizatorul care primeste challenge-ul va fi user2
+        setUser1(challenge.from);
+        setUser2(username);
         break;
       case 'accepted':
+        // doar utilizatorul care initeaza challenge-ul va primi acest status si va fi setat ca user1
+        // print('accepted:', username)
+        setIsGameStarted(true);
+        setUser1(username);
+        setUser2(challenge.from);
         alert(`${challenge.from} has accepted your challenge`);
-        // TODO: start game
         break;
       case 'rejected':
-        alert(`${challenge.from} has rejected your challenge`);
+
         challengedUser(null);
+        alert(`${challenge.from} has rejected your challenge`);
         break;
     }
   }
@@ -218,7 +234,7 @@ function App() {
   const closeModal = () => setIsChallengeModalOpen(false);
   const handleAccept = () => {
     sendChallenge(challengeFrom, 'accepted');
-    // startGame()???
+    setIsGameStarted(true);
     closeModal();
   };
   const handleReject = () => {
@@ -233,7 +249,7 @@ function App() {
         <ChallengeModal
           user={challengeFrom}
           isOpen={isChallengeModalOpen}
-          onClose={closeModal}
+          onClose={handleReject}
           onAccept={handleAccept}
           onReject={handleReject}
         />}
@@ -263,7 +279,9 @@ function App() {
         <div className="game-container d-flex-centerX d-flex-column" style={{ backgroundColor: "rgb(29, 36, 50)", border: "2px solid rgba(102, 112, 133, 1)" }}>
           <Game
             user={challengedUser}
-            socket={websocketRef}
+            isGameStarted={isGameStarted}
+            user1={user1}
+            user2={user2}
 
           />
 

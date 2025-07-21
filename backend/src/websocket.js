@@ -48,7 +48,10 @@ class WebSocketManager {
 					this.privateMessage(token, parsed);
 					break;
 				case 'challenge':
-					this.sendChallenge(parsed);
+					this.sendGameData(parsed);
+					break;
+				case 'game':
+					this.sendGameData(parsed);
 					break;
 				default:
 					console.log(`Unknown message type: ${message}`);
@@ -117,14 +120,15 @@ class WebSocketManager {
 		})
 	}
 
-	sendChallenge(challenge) {
+	// for sending game related data between users
+	sendGameData(gameData) {
 
-		const recipient = challenge.to;
-		// send challenge to the requested user
+		const recipient = gameData.to;
+		// send gameData to the requested user
 		(this.clients).forEach((socket, tokenTo) => {
 			if (auth.getUsernameFromToken(tokenTo) === recipient) {
 				if (socket.readyState === socket.OPEN) {
-					socket.send(JSON.stringify(challenge));
+					socket.send(JSON.stringify(gameData));
 				}
 			}
 		});
