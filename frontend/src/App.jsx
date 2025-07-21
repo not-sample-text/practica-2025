@@ -29,11 +29,12 @@ function App() {
   const [connectionStatus, setConnectionStatus] = React.useState("disconnected");
   const [selectedChat, setSelectedChat] = React.useState("broadcast");
   const [challengedUser, setChallengedUser] = React.useState(null);
-  const [challengeFrom, setChallengeFrom] = React.useState(null);
+  const [challengeInitiator, setChallengeInitiator] = React.useState(null);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = React.useState(false);
   const [isGameStarted, setIsGameStarted] = React.useState(false);
-  const [user1, setUser1] = React.useState(null);
-  const [user2, setUser2] = React.useState(null);
+  const [player, setPlayer] = React.useState(null);
+  const [opponent, setOpponent] = React.useState(null);
+  const [isGameUpdate, setIsGameUpdate] = React.useState(false);
   const username = getUsernameFromToken(getTokenFromCookie());
 
   const websocketRef = useRef(null);
@@ -92,6 +93,9 @@ function App() {
             break;
           case "challenge":
             manageChallenge(data);
+            break;
+          case "game":
+            manageGame(data);
             break;
           case 'error':
             console.error('server error:', error);
@@ -189,22 +193,26 @@ function App() {
       case 'initiated':
         // print('initiated:', username)
         openModal(true);
-        setChallengeFrom(challenge.from);
-        // daca status e initiated at. utilizatorul care primeste challenge-ul va fi user2
-        setUser1(challenge.from);
-        setUser2(username);
+        setChallengeInitiator(challenge.from);
+        // daca status e initiated at. utilizatorul care primeste challenge-ul va fi opponent
+        setPlayer(username);
+        setOpponent(challenge.from);
         break;
       case 'accepted':
-        // doar utilizatorul care initeaza challenge-ul va primi acest status si va fi setat ca user1
+        // doar utilizatorul care initeaza challenge-ul va primi acest status si va fi setat ca player
         // print('accepted:', username)
         setIsGameStarted(true);
-        setUser1(username);
-        setUser2(challenge.from);
+        setPlayer(username);
+        setOpponent(challenge.from);
+        setChallengeInitiator(username);
+        
         alert(`${challenge.from} has accepted your challenge`);
         break;
       case 'rejected':
 
         challengedUser(null);
+        setPlayer(null);
+        setOpponent(null);
         alert(`${challenge.from} has rejected your challenge`);
         break;
     }
@@ -233,21 +241,44 @@ function App() {
   const openModal = () => setIsChallengeModalOpen(true);
   const closeModal = () => setIsChallengeModalOpen(false);
   const handleAccept = () => {
-    sendChallenge(challengeFrom, 'accepted');
+    sendChallenge(challengeInitiator, 'accepted');
     setIsGameStarted(true);
     closeModal();
   };
   const handleReject = () => {
-    sendChallenge(challengeFrom, 'rejected');
+    sendChallenge(challengeInitiator, 'rejected');
     closeModal();
   };
 
+
+  const updateGameState = () => {
+    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+      console.log('sending update to server');
+      const gameState = {
+        type: 'game',
+        from: player,
+        to: opponent,
+        status: 'update'
+      }
+      
+      websocketRef.current.send(JSON.stringify(gameState));
+    }
+  }
+
+  const manageGame = (gameState) => {
+    switch(gameState.status) {
+      case 'update':
+        console.log('setting update to true')
+        setIsGameUpdate(true);
+        break;
+    }
+  }
 
   return isLoggedIn ? (
     <div className="main light">
       {isChallengeModalOpen &&
         <ChallengeModal
-          user={challengeFrom}
+          user={challengeInitiator}
           isOpen={isChallengeModalOpen}
           onClose={handleReject}
           onAccept={handleAccept}
@@ -278,11 +309,13 @@ function App() {
 
         <div className="game-container d-flex-centerX d-flex-column" style={{ backgroundColor: "rgb(29, 36, 50)", border: "2px solid rgba(102, 112, 133, 1)" }}>
           <Game
-            user={challengedUser}
+            initiator={challengeInitiator}
             isGameStarted={isGameStarted}
-            user1={user1}
-            user2={user2}
-
+            player={player}
+            opponent={opponent}
+            updateGameState={updateGameState}
+            isGameUpdate={isGameUpdate}
+            setIsGameUpdate={setIsGameUpdate}
           />
 
         </div>
