@@ -20,7 +20,7 @@ const wsManager = new WebSocketManager(pokerGames);
 setWebSocketManager(wsManager);
 
 // Serve static files
-app.use(serve(__dirname + "/dist"));
+app.use(serve(__dirname + "./../frontend/dist"));
 
 // WebSocket route
 app.ws.use(route.all("/ws", (ctx) => wsManager.handleConnection(ctx)));

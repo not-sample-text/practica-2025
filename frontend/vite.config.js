@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     // Aici este magia!
+    port: 80,
+    host: true,
     proxy: {
       // Orice cerere care începe cu '/api'
       '/api': {

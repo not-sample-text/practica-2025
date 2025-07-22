@@ -23,5 +23,69 @@
   "calin": {
     "username": "calin",
     "password": "test12345"
+  },
+  "alebercu": {
+    "username": "alebercu",
+    "password": "alealeale"
+  },
+  "Danut": {
+    "username": "Danut",
+    "password": "Danuts12345"
+  },
+  "toni": {
+    "username": "toni",
+    "password": "adsfadsfadsf"
+  },
+  "mihai": {
+    "username": "mihai",
+    "password": "test12345"
+  },
+  "Pinguin": {
+    "username": "Pinguin",
+    "password": "kricos12345"
+  },
+  "Krico": {
+    "username": "Krico",
+    "password": "test12345"
+  },
+  "user": {
+    "username": "user",
+    "password": "user12345"
+  },
+  "toni2": {
+    "username": "toni2",
+    "password": "dfghjklkjhv"
+  },
+  "toni3": {
+    "username": "toni3",
+    "password": "qwerty"
+  },
+  "ale": {
+    "username": "ale",
+    "password": "alealeale"
+  },
+  "ruben": {
+    "username": "ruben",
+    "password": "test12345"
+  },
+  "Messi": {
+    "username": "Messi",
+    "password": "123456"
+  },
+  "Vct": {
+    "username": "Vct",
+    "password": "test12345"
+  },
+  "broadcast": {
+    "username": "broadcast",
+    "password": "test12345"
+  },
+  "null": {
+    "username": "null",
+    "password": "test12345"
+  },
+  "[object Object]": {
+    "username": "[object Object]",
+    "password": "undefined"
   }
 }
