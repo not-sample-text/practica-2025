@@ -67,7 +67,9 @@ const Header = ({ onLogout, connectionStatus }) => {
             ● {connectionStatus.toUpperCase()}
           </span>
         </div>
-        <button 
+      </div>
+      <div>
+         <button 
           onClick={onLogout}
           className="logout-btn"
         >

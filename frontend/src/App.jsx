@@ -114,7 +114,7 @@ function App() {
 
   return isLoggedIn ? (
     <div className="app-container">
-      <div className="app-header">
+      <div className="app-header grid">
         <Header onLogout={handleLogout} connectionStatus={connectionStatus} />
       </div>
       <div className="app-main">

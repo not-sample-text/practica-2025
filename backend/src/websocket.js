@@ -3,7 +3,12 @@ const auth = require("./auth");
 class WebSocketManager {
   constructor() {
     this.clients = new Map();
-    this.groupChats = new Map(); // Store group chat information
+    this.groupChats = new Map();
+    
+    // Periodic cleanup of dead connections
+    setInterval(() => {
+      this.cleanupDeadConnections();
+    }, 30000); // Clean up every 30 seconds
   }
 
   handleConnection(ctx) {
@@ -15,11 +20,18 @@ class WebSocketManager {
       return;
     }
 
+    const username = auth.getUsernameFromToken(token);
+    console.log(`Socket client «${username}» (${token}) connected`);
+
     this.clients.set(token, ctx.websocket);
-    console.log(`Socket client «${token}» added`);
+
+    // Send usernames immediately after adding the new client
+    setTimeout(() => {
+      this.sendUsernames();
+    }, 100);
 
     ctx.websocket.on('message', (message) => {
-      console.log(`Received from client »»» `, message);
+      console.log(`Received from client ${username} »»» `, message);
 
       let parsed = { type: 'message', chatname: "", content: message.toString() };
       try {
@@ -63,42 +75,64 @@ class WebSocketManager {
       }
     });
 
-    this.sendUsernames();
-
     ctx.websocket.on('close', () => {
-      console.log('Client disconnected');
+      console.log(`Client ${username} disconnected`);
       this.clients.delete(token);
-      this.sendUsernames();
+      // Send updated usernames after a client disconnects
+      setTimeout(() => {
+        this.sendUsernames();
+      }, 100);
+    });
+
+    ctx.websocket.on('error', (error) => {
+      console.error(`WebSocket error for ${username}:`, error);
+      this.clients.delete(token);
+      setTimeout(() => {
+        this.sendUsernames();
+      }, 100);
     });
   }
 
   privateMessage(token, recipient, message) {
     const senderUsername = auth.getUsernameFromToken(token);
+    console.log(`Private message from ${senderUsername} to ${recipient}: ${message.content}`);
+    
+    let recipientFound = false;
     
     this.clients.forEach((socket, tokenTo) => {
       const recipientUsername = auth.getUsernameFromToken(tokenTo);
       
-      // Send to recipient
+      // Send to recipient only (not back to sender)
       if (recipientUsername === recipient && socket.readyState === socket.OPEN) {
-        socket.send(JSON.stringify({
-          type: 'private',
-          username: senderUsername,
-          content: message.content,
-          timestamp: Date.now()
-        }));
-      }
-      
-      // Send back to sender for confirmation
-      if (tokenTo === token && socket.readyState === socket.OPEN) {
+        recipientFound = true;
         socket.send(JSON.stringify({
           type: 'private',
           username: senderUsername,
           content: message.content,
           timestamp: Date.now(),
-          isOwnMessage: true
+          recipient: recipient // This helps the recipient identify which chat this belongs to
         }));
+        console.log(`Sent private message to ${recipient}`);
       }
     });
+
+    // Send confirmation back to sender that message was sent
+    const senderSocket = this.clients.get(token);
+    if (senderSocket && senderSocket.readyState === senderSocket.OPEN) {
+      senderSocket.send(JSON.stringify({
+        type: 'private_sent',
+        username: senderUsername,
+        content: message.content,
+        timestamp: Date.now(),
+        recipient: recipient,
+        delivered: recipientFound
+      }));
+      console.log(`Sent confirmation to sender ${senderUsername}`);
+    }
+
+    if (!recipientFound) {
+      console.log(`Recipient ${recipient} not found or not connected`);
+    }
   }
 
   broadcastMessage(token, message) {
@@ -242,18 +276,37 @@ class WebSocketManager {
   }
 
   sendUsernames() {
-    if (this.clients?.size === 0) return;
+    if (!this.clients || this.clients.size === 0) return;
 
-    const usernames = Array.from(this.clients.keys()).map(token => 
-      auth.getUsernameFromToken(token)
-    );
-
-    this.clients.forEach((client) => {
+    // Filter out clients with closed connections
+    const activeClients = new Map();
+    this.clients.forEach((client, token) => {
       if (client.readyState === client.OPEN) {
-        client.send(JSON.stringify({ 
-          type: 'usernames', 
-          content: usernames 
-        }));
+        activeClients.set(token, client);
+      }
+    });
+    
+    // Update the clients map to only include active connections
+    this.clients = activeClients;
+
+    const usernames = Array.from(this.clients.keys())
+      .map(token => auth.getUsernameFromToken(token))
+      .filter(username => username); // Filter out null/undefined usernames
+
+    console.log(`Sending usernames to ${this.clients.size} clients:`, usernames);
+
+    this.clients.forEach((client, token) => {
+      if (client.readyState === client.OPEN) {
+        try {
+          client.send(JSON.stringify({ 
+            type: 'usernames', 
+            content: usernames 
+          }));
+        } catch (error) {
+          console.error(`Failed to send usernames to client ${auth.getUsernameFromToken(token)}:`, error);
+          // Remove the problematic client
+          this.clients.delete(token);
+        }
       }
     });
   }
@@ -277,6 +330,23 @@ class WebSocketManager {
   // Method to get group info
   getGroupInfo(groupId) {
     return this.groupChats.get(groupId);
+  }
+
+  // Method to clean up dead connections periodically
+  cleanupDeadConnections() {
+    const activeClients = new Map();
+    this.clients.forEach((client, token) => {
+      if (client.readyState === client.OPEN) {
+        activeClients.set(token, client);
+      } else {
+        console.log(`Cleaning up dead connection for token: ${token}`);
+      }
+    });
+    
+    if (activeClients.size !== this.clients.size) {
+      this.clients = activeClients;
+      this.sendUsernames();
+    }
   }
 }
 

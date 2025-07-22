@@ -1,10 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../stylecomponents/GroupChatModal.css";
 
-const GroupChatModal = ({ users, onCreateGroup, onClose }) => {
-  const [groupName, setGroupName] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
+const GroupChatModal = ({ 
+  users, 
+  onCreateGroup, 
+  onClose,
+  initialSelectedUsers = [],
+  initialGroupName = "",
+  onSelectionChange,
+  onNameChange,
+  onClearSelections
+}) => {
+  const [groupName, setGroupName] = useState(initialGroupName);
+  const [selectedUsers, setSelectedUsers] = useState(initialSelectedUsers);
   const [error, setError] = useState("");
+
+  // Update parent when selections change
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selectedUsers);
+    }
+  }, [selectedUsers, onSelectionChange]);
+
+  // Update parent when name changes
+  useEffect(() => {
+    if (onNameChange) {
+      onNameChange(groupName);
+    }
+  }, [groupName, onNameChange]);
 
   const handleUserToggle = (username) => {
     setSelectedUsers(prev => 
@@ -26,6 +49,16 @@ const GroupChatModal = ({ users, onCreateGroup, onClose }) => {
     }
 
     onCreateGroup(groupName.trim(), selectedUsers);
+    // Note: Don't clear state here, let parent handle it
+  };
+
+  const handleClearAll = () => {
+    setGroupName("");
+    setSelectedUsers([]);
+    setError("");
+    if (onClearSelections) {
+      onClearSelections();
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -63,7 +96,19 @@ const GroupChatModal = ({ users, onCreateGroup, onClose }) => {
           </div>
 
           <div className="users-selection-section">
-            <label>Select Users ({selectedUsers.length} selected):</label>
+            <div className="selection-header">
+              <label>Select Users ({selectedUsers.length} selected):</label>
+              {(selectedUsers.length > 0 || groupName) && (
+                <button 
+                  className="clear-all-btn"
+                  onClick={handleClearAll}
+                  title="Clear all selections"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+            
             <div className="users-grid">
               {users.map(user => (
                 <div
@@ -87,6 +132,26 @@ const GroupChatModal = ({ users, onCreateGroup, onClose }) => {
               ))}
             </div>
           </div>
+
+          {selectedUsers.length > 0 && (
+            <div className="selected-users-preview">
+              <h4>Selected Users:</h4>
+              <div className="selected-users-list">
+                {selectedUsers.map(user => (
+                  <span key={user} className="selected-user-tag">
+                    {user}
+                    <button
+                      onClick={() => handleUserToggle(user)}
+                      className="remove-user-btn"
+                      title={`Remove ${user}`}
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="error-message">

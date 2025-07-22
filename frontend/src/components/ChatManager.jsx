@@ -1,8 +1,9 @@
-  import React, { useState, useEffect} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Chat from "./Chat";
 import ActiveUsers from "./ActiveUsers";
 import ChatTabs from "./ChatTabs";
 import GroupChatModal from "./GroupChatModal";
+import GameManager from "./GameManager";
 import "../stylecomponents/ChatManager.css";
 
 const ChatManager = ({ username, connectionStatus, websocketRef }) => {
@@ -12,15 +13,16 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
   const [activeChat, setActiveChat] = useState('global');
   const [users, setUsers] = useState([]);
   const [showGroupModal, setShowGroupModal] = useState(false);
+  const gameManagerRef = useRef();
 
-  // Handle WebSocket messages
+  // WebSocket listener
   useEffect(() => {
     if (connectionStatus === "connected" && websocketRef.current) {
       const handleMessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           console.log('ChatManager received message:', data);
-          
+
           switch (data.type) {
             case 'usernames':
               setUsers(data.content || []);
@@ -31,6 +33,9 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
               break;
             case 'private':
               handlePrivateMessage(data);
+              break;
+            case 'private_sent':
+              handlePrivateMessageSent(data);
               break;
             case 'group':
               handleGroupMessage(data);
@@ -53,12 +58,10 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
       websocketRef.current.addEventListener('message', handleMessage);
 
       return () => {
-        if (websocketRef.current) {
-          websocketRef.current.removeEventListener('message', handleMessage);
-        }
+        websocketRef.current?.removeEventListener('message', handleMessage);
       };
     }
-  }, [connectionStatus, websocketRef]);
+  }, [connectionStatus, websocketRef, activeChat, username]);
 
   const handleIncomingMessage = (data) => {
     const message = {
@@ -68,11 +71,11 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
       type: data.type
     };
 
-    setChats(prevChats => 
-      prevChats.map(chat => 
-        chat.id === 'global' 
-          ? { 
-              ...chat, 
+    setChats(prevChats =>
+      prevChats.map(chat =>
+        chat.id === 'global'
+          ? {
+              ...chat,
               messages: [...chat.messages, message],
               unreadCount: activeChat !== 'global' ? chat.unreadCount + 1 : 0
             }
@@ -92,7 +95,7 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
 
     setChats(prevChats => {
       const existingChat = prevChats.find(chat => chat.id === chatId);
-      
+
       if (existingChat) {
         return prevChats.map(chat =>
           chat.id === chatId
@@ -104,7 +107,6 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
             : chat
         );
       } else {
-        // Create new private chat
         const newChat = {
           id: chatId,
           name: data.username,
@@ -112,6 +114,41 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
           messages: [message],
           unreadCount: activeChat !== chatId ? 1 : 0,
           participants: [username, data.username]
+        };
+        return [...prevChats, newChat];
+      }
+    });
+  };
+
+  const handlePrivateMessageSent = (data) => {
+    const chatId = `private-${data.recipient}`;
+    const message = {
+      username: data.username,
+      content: data.content,
+      timestamp: data.timestamp || Date.now(),
+      type: 'private'
+    };
+
+    setChats(prevChats => {
+      const existingChat = prevChats.find(chat => chat.id === chatId);
+
+      if (existingChat) {
+        return prevChats.map(chat =>
+          chat.id === chatId
+            ? {
+                ...chat,
+                messages: [...chat.messages, message]
+              }
+            : chat
+        );
+      } else {
+        const newChat = {
+          id: chatId,
+          name: data.recipient,
+          type: 'private',
+          messages: [message],
+          unreadCount: 0,
+          participants: [username, data.recipient]
         };
         return [...prevChats, newChat];
       }
@@ -133,7 +170,7 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
           ? {
               ...chat,
               messages: [...chat.messages, message],
-              unreadCount: activeChat !== chatId ? chat.unreadCount + 1 : 0
+              unreadCount: (activeChat !== chatId && data.username !== username) ? chat.unreadCount + 1 : 0
             }
           : chat
       )
@@ -156,7 +193,7 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
       participants: data.participants,
       groupId: data.groupId
     };
-    
+
     setChats(prevChats => [...prevChats, newChat]);
   };
 
@@ -184,10 +221,23 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
     );
   };
 
+  const handleInviteToGame = (targetUsername) => {
+    if (gameManagerRef.current) {
+      gameManagerRef.current.sendGameInvitation(targetUsername);
+    }
+  };
+
+  const getSentGameInvitations = () => {
+    if (gameManagerRef.current) {
+      return gameManagerRef.current.getSentInvitations();
+    }
+    return [];
+  };
+
   const startPrivateChat = (targetUsername) => {
     const chatId = `private-${targetUsername}`;
     const existingChat = chats.find(chat => chat.id === chatId);
-    
+
     if (!existingChat) {
       const newChat = {
         id: chatId,
@@ -199,33 +249,32 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
       };
       setChats(prevChats => [...prevChats, newChat]);
     }
-    
+
     setActiveChat(chatId);
+    clearUnreadCount(chatId);
   };
 
   const startGroupChat = (groupName, selectedUsers) => {
     const groupId = `${Date.now()}`;
-    
-    // Send group creation message to server
-    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+
+    if (websocketRef.current?.readyState === WebSocket.OPEN) {
       const message = {
         type: 'create_group',
-        groupId: groupId,
-        groupName: groupName,
+        groupId,
+        groupName,
         participants: selectedUsers
       };
-      
       websocketRef.current.send(JSON.stringify(message));
     }
-    
+
     setShowGroupModal(false);
   };
 
   const closeChat = (chatId) => {
-    if (chatId === 'global') return; // Can't close global chat
-    
+    if (chatId === 'global') return;
+
     setChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
-    
+
     if (activeChat === chatId) {
       setActiveChat('global');
     }
@@ -233,50 +282,42 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
 
   const sendMessage = (messageData) => {
     const currentChat = chats.find(chat => chat.id === activeChat);
-    if (!currentChat) return;
+    if (!currentChat || !websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
 
-    // Send via WebSocket
-    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-      let wsMessage;
-      
-      switch (currentChat.type) {
-        case 'global':
-          wsMessage = {
-            type: 'broadcast',
-            content: messageData.content
-          };
-          break;
-        case 'private':
-          wsMessage = {
-            type: 'private',
-            content: messageData.content,
-            recipient: currentChat.name
-          };
-          break;
-        case 'group':
-          wsMessage = {
-            type: 'group',
-            content: messageData.content,
-            groupId: currentChat.groupId || currentChat.id.split('-')[1]
-          };
-          break;
-        default:
-          console.error('Unknown chat type:', currentChat.type);
-          return;
-      }
-      
-      websocketRef.current.send(JSON.stringify(wsMessage));
+    let wsMessage;
+    switch (currentChat.type) {
+      case 'global':
+        wsMessage = { type: 'broadcast', content: messageData.content };
+        break;
+      case 'private':
+        wsMessage = { type: 'private', content: messageData.content, recipient: currentChat.name };
+        break;
+      case 'group':
+        wsMessage = {
+          type: 'group',
+          content: messageData.content,
+          groupId: currentChat.groupId || currentChat.id.split('-')[1]
+        };
+        break;
+      default:
+        console.error('Unknown chat type:', currentChat.type);
+        return;
     }
+
+    websocketRef.current.send(JSON.stringify(wsMessage));
   };
 
   const clearUnreadCount = (chatId) => {
     setChats(prevChats =>
       prevChats.map(chat =>
-        chat.id === chatId
-          ? { ...chat, unreadCount: 0 }
-          : chat
+        chat.id === chatId ? { ...chat, unreadCount: 0 } : chat
       )
     );
+  };
+
+  const handleChatSelect = (chatId) => {
+    setActiveChat(chatId);
+    clearUnreadCount(chatId);
   };
 
   const currentChat = chats.find(chat => chat.id === activeChat);
@@ -290,15 +331,14 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
           onStartPrivateChat={startPrivateChat}
           onStartGroupChat={() => setShowGroupModal(true)}
           activePrivateChats={chats.filter(chat => chat.type === 'private').map(chat => chat.name)}
+          onInviteToGame={handleInviteToGame}
+          sentGameInvitations={getSentGameInvitations()}
         />
-        
+
         <ChatTabs
           chats={chats}
           activeChat={activeChat}
-          onChatSelect={(chatId) => {
-            setActiveChat(chatId);
-            clearUnreadCount(chatId);
-          }}
+          onChatSelect={handleChatSelect}
           onCloseChat={closeChat}
         />
       </div>
@@ -325,6 +365,13 @@ const ChatManager = ({ username, connectionStatus, websocketRef }) => {
           onClose={() => setShowGroupModal(false)}
         />
       )}
+
+      <GameManager
+        ref={gameManagerRef}
+        username={username}
+        websocketRef={websocketRef}
+        connectionStatus={connectionStatus}
+      />
     </div>
   );
 };

@@ -76,8 +76,17 @@ const Chat = ({
               </div>
             ) : (
               messages.map((message, index) => {
-                const isSystemMessage = message.content.includes("Invalid or expired token");
-                const isCurrentUser = message.username === username;
+                const isSystemMessage = message.content.includes("Invalid or expired token") || message.type === 'system';
+                
+                // For private chats, determine if this is the current user's message
+                let isCurrentUser;
+                if (isPrivateChat) {
+                  // Check if this message is from the current user
+                  isCurrentUser = message.username === username;
+                } else {
+                  // For global chat, use the original logic
+                  isCurrentUser = message.username === username;
+                }
 
                 return (
                   <div
@@ -149,6 +158,7 @@ const Chat = ({
             )}
           </div>
         </div>
+
         <button className="chat-toggle-btn" onClick={toggleChatVisibility}>
           {isChatHidden ? "👁️" : "👁️‍🗨️"}
         </button>
