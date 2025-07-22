@@ -46,9 +46,19 @@ export const useRooms = (sendMessage) => {
 		[sendMessage]
 	);
 
-	const selectRoom = useCallback((roomName) => {
-		setCurrentRoom(roomName);
-	}, []);
+	const selectRoom = useCallback(
+		(roomName) => {
+			setCurrentRoom(roomName);
+			// Also join the room on the backend when selecting it
+			if (roomName && sendMessage) {
+				sendMessage({
+					type: "join_room",
+					room: roomName
+				});
+			}
+		},
+		[sendMessage]
+	);
 
 	return {
 		currentRoom,

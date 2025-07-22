@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
+import { AppProvider } from "./context/AppContext";
 import LandingPage from "./components/layout/LandingPage";
 import Dashboard from "./components/Dashboard";
 import AuthModal from "./components/auth/AuthModal";
@@ -64,10 +65,12 @@ function App() {
 
 	if (isLoggedIn && user) {
 		return (
-			<Dashboard
-				user={user}
-				onLogout={logout}
-			/>
+			<AppProvider>
+				<Dashboard
+					user={user}
+					onLogout={logout}
+				/>
+			</AppProvider>
 		);
 	}
 

@@ -114,7 +114,7 @@ export const useWebSocket = (username) => {
 									type: "room_message",
 									room,
 									sender,
-									content: text,
+									content: content || text, // Handle both content and text fields
 									timestamp: data.timestamp || new Date().toISOString()
 								}
 							]);
@@ -140,6 +140,16 @@ export const useWebSocket = (username) => {
 									private: {}
 								}
 							);
+							break;
+						case "game_state":
+							// Handle game state updates
+							console.log("Received game state:", data.gameState);
+							// This will be handled by the AppContext
+							break;
+						case "game_event":
+							// Handle game events
+							console.log("Received game event:", data.event);
+							// This will be handled by the AppContext
 							break;
 						case "error":
 							console.error("WebSocket error:", data.message);

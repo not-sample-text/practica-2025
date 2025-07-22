@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useAppContext } from "../../context/AppContext";
 import {
 	IconWorld,
 	IconHome,
 	IconMessage,
 	IconMessages
 } from "@tabler/icons-react";
+import Button from "../ui/Button";
 
 const ChatDisplay = ({
 	chatType = "global", // 'global', 'room', 'private'
@@ -17,6 +19,8 @@ const ChatDisplay = ({
 }) => {
 	const [newMessage, setNewMessage] = useState("");
 	const messagesEndRef = useRef(null);
+	const { state, actions } = useAppContext();
+	const { websocket, gameState } = state;
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,7 +44,7 @@ const ChatDisplay = ({
 			case "room":
 				messageData = {
 					type: "sendRoomMessage",
-					room: chatTarget,
+					room: chatTarget?.toLowerCase(), // Normalize to match backend
 					content: newMessage
 				};
 				break;
@@ -147,21 +151,73 @@ const ChatDisplay = ({
 		}
 	};
 
+	// Game functionality
+	const handleStartBlackjack = () => {
+		if (websocket && websocket.readyState === WebSocket.OPEN) {
+			websocket.send(
+				JSON.stringify({
+					type: "start_room_game",
+					room: chatTarget?.toLowerCase(), // Normalize to match backend
+					gameType: "blackjack"
+				})
+			);
+		} else {
+			actions.setError("Connection lost. Please try again.");
+		}
+	};
+
+	// Check if this room has an active game
+	const isGameRoom = gameState && gameState.room === chatTarget;
+	const canStartGame =
+		chatType === "room" && !isGameRoom && connectionStatus === "connected";
+
 	const filteredMessages = getFilteredMessages;
 
 	return (
 		<div className="flex flex-col h-screen bg-white dark:bg-stone-800">
 			{/* Chat Header */}
-			<div className="p-4 border-b border-gray-200 dark:border-stone-600 flex items-center justify-between">
-				<div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-					{getChatTitle()}
+			<div className="p-4 border-b border-gray-200 dark:border-stone-600">
+				<div className="flex items-center justify-between mb-2">
+					<div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+						{getChatTitle()}
+					</div>
+					<div className="flex items-center gap-2">
+						{/* Game Status Indicator */}
+						{isGameRoom && (
+							<span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+								🃏 Game Active
+							</span>
+						)}
+						{chatType === "room" && onLeaveRoom && (
+							<button
+								onClick={() => onLeaveRoom(chatTarget)}
+								className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
+								Leave Room
+							</button>
+						)}
+					</div>
 				</div>
-				{chatType === "room" && onLeaveRoom && (
-					<button
-						onClick={() => onLeaveRoom(chatTarget)}
-						className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
-						Leave Room
-					</button>
+
+				{/* Game Controls */}
+				{canStartGame && (
+					<div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+									🎮 Start a Game
+								</p>
+								<p className="text-xs text-blue-700 dark:text-blue-300">
+									Turn this room into a Blackjack game room
+								</p>
+							</div>
+							<Button
+								onClick={handleStartBlackjack}
+								variant="primary"
+								size="sm">
+								Start Blackjack
+							</Button>
+						</div>
+					</div>
 				)}
 			</div>
 

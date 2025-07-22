@@ -1,4 +1,103 @@
-1. Implement game rooms
-2. Use https://deckofcardsapi.com/ for cards / decks logic
-3. Implement simple dealer vs user 1v1 blackjack game
-4. Implement dealer vs multiple user blackjack
+# BLACKJACK GAME ROOMS IMPLEMENTATION
+
+## BACKEND TASKS
+
+### Core Game Logic
+✅ 1. Create GameRoom class that extends existing room functionality
+✅ 2. Implement game state management (waiting, betting, dealing, playing, dealer_turn, round_complete, game_over)
+✅ 3. Integrate Deck of Cards API for card/deck logic
+✅ 4. Create player management system with states (waiting, betting, playing, busted, standing, disconnected)
+✅ 5. Implement betting system (min 10 chips, max 8 players per room)
+✅ 6. Add timer system (30s for actions, 45s disconnect grace period + 15s reconnect bonus)
+✅ 7. Create dealer logic (house dealer, standard blackjack rules)
+✅ 8. Implement game flow control (sequential dealing, turn management)
+✅ 9. Add disconnection/reconnection handling
+✅ 10. Create spectator system for late joiners
+
+### Data & Persistence
+✅ 11. Design game state data structures
+✅ 12. Implement player chip management (start with 1000, refill button when 0)
+✅ 13. Create game history tracking (rounds won/lost, chips won/lost, current balance)
+✅ 14. Add deck management (minimum 6 decks, shuffle at 20-30% remaining)
+
+### WebSocket Events
+✅ 15. Design and implement game-specific WebSocket message types
+✅ 16. Add real-time game event broadcasting
+✅ 17. Implement card visibility logic (all player cards visible, dealer face-down hidden)
+✅ 18. Create game notification system separate from chat notifications
+
+### API Integration
+✅ 19. Integrate Deck of Cards API endpoints
+✅ 20. Handle deck creation, shuffling, and card dealing
+✅ 21. Implement card state synchronization
+
+## FRONTEND TASKS
+
+### UI Components
+✅ 22. Create GameControls component (start game, betting interface)
+✅ 23. Build BlackjackTable component (card display, player positions)
+✅ 24. Implement PlayerHand component (cards, chips, status)
+✅ 25. Create DealerHand component (face-up/face-down card logic)
+✅ 26. Build BettingInterface component (chip selection, bet placement)
+✅ 27. Create GameTimer component (action countdown display)
+✅ 28. Implement PlayerActions component (hit, stand, double, split buttons)
+✅ 29. Create SpectatorView component for late joiners
+✅ 30. Build ChipManager component (balance display, refill button)
+
+### Game State Management
+✅ 31. Extend useRooms hook for game functionality
+✅ 32. Create useBlackjack hook for game state management
+✅ 33. Implement useGameTimer hook for action timers
+✅ 34. Add useChips hook for chip/betting management
+✅ 35. Create game state synchronization logic
+
+### Real-time Updates
+✅ 36. Implement real-time card animations
+✅ 37. Create game event handling (card dealt, player actions, state changes)
+✅ 38. Add visual feedback for player turns and game states
+✅ 39. Implement notification system for game events
+✅ 40. Create disconnection/reconnection UI handling
+
+### Room Configuration
+✅ 41. Add game room configuration UI (max players, deck count)
+✅ 42. Create room owner controls (start game, manage players)
+43. Implement single-player vs multiplayer selection
+44. Add game rules display/configuration
+
+### Visual & UX
+✅ 45. Design card sprites/graphics or integrate card images from API
+✅ 46. Create smooth card dealing animations
+✅ 47. Implement chip betting animations
+✅ 48. Add visual indicators for player states (waiting, playing, busted, etc.)
+✅ 49. Create responsive design for different screen sizes
+50. Add accessibility features for game interface
+
+### Integration Changes
+✅ 51. Add "Start Blackjack" button to chat rooms
+✅ 52. Integrate game state with existing room system
+✅ 53. Update Dashboard to switch between chat and game views
+✅ 54. Modify backend to handle room-to-game conversion
+
+## TESTING & POLISH
+
+### Core Functionality Testing
+55. Test game room creation from chat rooms
+56. Test full game flow (betting, dealing, player actions, payouts)
+57. Test multiple players in same game
+58. Test spectator functionality
+59. Test disconnection/reconnection during games
+60. Test chip management and refilling
+
+### Edge Cases & Error Handling
+61. Test invalid bets and actions
+62. Test game state persistence during connection issues
+63. Test room cleanup when all players leave
+64. Test concurrent game actions
+65. Test deck reshuffling
+
+### Performance & Polish
+66. Optimize WebSocket message handling for games
+67. Add loading states for game actions
+68. Improve game animations and transitions
+69. Add sound effects for game events
+70. Final UI polish and responsive design fixes

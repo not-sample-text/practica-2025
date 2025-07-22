@@ -14,6 +14,17 @@ export { default as LoginForm } from "./auth/LoginForm";
 export { default as SignupForm } from "./auth/SignupForm";
 export { default as AuthModal } from "./auth/AuthModal";
 
+// Game Components exports
+export { default as BlackjackTable } from "./game/BlackjackTable";
+export { default as DealerHand } from "./game/DealerHand";
+export { default as PlayerHand } from "./game/PlayerHand";
+export { default as BettingInterface } from "./game/BettingInterface";
+export { default as PlayerActions } from "./game/PlayerActions";
+export { default as GameTimer } from "./game/GameTimer";
+export { default as GameControls } from "./game/GameControls";
+export { default as SpectatorView } from "./game/SpectatorView";
+export { default as Card } from "./game/Card";
+
 // Main Components exports
 export { default as ActiveUsers } from "./ActiveUsers";
 export { default as Chat } from "./Chat";

@@ -204,6 +204,22 @@ class MessageStore {
 	generateMessageId() {
 		return Date.now().toString(36) + Math.random().toString(36).substr(2);
 	}
+
+	async getExistingRooms() {
+		try {
+			const roomsDir = path.join(this.messagesDir, "rooms");
+			const files = await fs.readdir(roomsDir);
+			const rooms = files
+				.filter((file) => file.endsWith(".json"))
+				.map((file) => file.replace(".json", ""));
+			return rooms;
+		} catch (error) {
+			if (error.code !== "ENOENT") {
+				console.error("Error reading rooms directory:", error);
+			}
+			return [];
+		}
+	}
 }
 
 module.exports = MessageStore;
