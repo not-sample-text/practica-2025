@@ -10,11 +10,14 @@ const bodyParser = require('koa-bodyparser');
 const config = require("./src/config");
 const handlers = require("./src/handlers");
 const WebSocketManager = require("./src/websocket");
-const routes = require("./src/routes");
+const { routes, pokerGames, setWebSocketManager } = require("./src/routes");
 
 // Initialize application
 const app = websockify(new Koa());
-const wsManager = new WebSocketManager();
+const wsManager = new WebSocketManager(pokerGames);
+
+// Set the WebSocket manager reference in routes
+setWebSocketManager(wsManager);
 
 // Serve static files
 app.use(serve(__dirname + "/dist"));

@@ -1,4 +1,3 @@
-// START OF FILE RoomChat.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 

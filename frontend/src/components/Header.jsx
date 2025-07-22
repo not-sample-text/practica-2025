@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import ActiveUsers from './ActiveUsers';
 
-const Header = ({ onLogout, connectionStatus, username, users }) => {
+const Header = ({ onLogout, connectionStatus, username, users, onPrivateNavigation, onRoomNavigation, onPokerNavigation }) => {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -60,22 +60,31 @@ const Header = ({ onLogout, connectionStatus, username, users }) => {
             </NavLink>
           </li>
           <li className="nav-item">
-            <NavLink 
-              to="/home/rooms" 
-              className="nav-link d-flex align-items-center justify-content-center gap-2"
+            <button 
+              onClick={onRoomNavigation}
+              className="nav-link d-flex align-items-center justify-content-center gap-2 btn btn-link text-decoration-none border-0 w-100"
             >
               <i className="bi bi-door-open-fill fs-5"></i>
               <span className="fw-medium">Camere</span>
-            </NavLink>
+            </button>
           </li>
           <li className="nav-item">
-            <NavLink 
-              to="/home/private" 
-              className="nav-link d-flex align-items-center justify-content-center gap-2"
+            <button 
+              onClick={onPrivateNavigation}
+              className="nav-link d-flex align-items-center justify-content-center gap-2 btn btn-link text-decoration-none border-0 w-100"
             >
               <i className="bi bi-person-hearts fs-5"></i>
               <span className="fw-medium">Chat Privat</span>
-            </NavLink>
+            </button>
+          </li>
+          <li className="nav-item">
+            <button 
+              onClick={onPokerNavigation}
+              className="nav-link d-flex align-items-center justify-content-center gap-2 btn btn-link text-decoration-none border-0 w-100"
+            >
+              <i className="bi bi-suit-spade-fill fs-5"></i>
+              <span className="fw-medium">Poker</span>
+            </button>
           </li>
         </ul>
       </nav>
