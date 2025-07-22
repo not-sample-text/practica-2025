@@ -10,6 +10,15 @@ export default defineConfig({
         target: proxy,
         changeOrigin: true,
       },
+      '/register': {
+        target: proxy,
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: proxy,
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },  
 })

@@ -24,11 +24,11 @@ app.ws.use(route.all("/ws", (ctx) => wsManager.handleConnection(ctx)));
 // HTTP routes
 app
 	.use(bodyParser())
-	.use(routes.routes())
 	.use(routes.allowedMethods())
-	.use(handlers.handleMainPage)
-	.use(handlers.handleLogin)
-	.use(handlers.handleDefault);
+	.use(routes.routes())
+	// .use(handlers.handleMainPage)
+	// .use(handlers.handleLogin)
+	// .use(handlers.handleDefault);	
 
 // Start server
 app.listen(config.port);
