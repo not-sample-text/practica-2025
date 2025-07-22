@@ -1,2 +1,4 @@
-implement chat rooms from danut branch
-multiple chats in bottom row instead of forced minimize for global chat
+1. Implement game rooms
+2. Use https://deckofcardsapi.com/ for cards / decks logic
+3. Implement simple dealer vs user 1v1 blackjack game
+4. Implement dealer vs multiple user blackjack

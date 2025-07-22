@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useChat } from "../hooks/useChat";
+import { useRooms } from "../hooks/useRooms";
 import Navbar from "./layout/Navbar";
-import Chat from "./Chat";
-import ActiveUsers from "./ActiveUsers";
+import ChatSidebar from "./chat/ChatSidebar";
+import ChatDisplay from "./chat/ChatDisplay";
 import AuthService from "../services/authService";
 import { clearTokenCookie } from "../utils/auth";
 
@@ -11,22 +12,77 @@ import { clearTokenCookie } from "../utils/auth";
  * Dashboard component - responsible for the authenticated user experience
  */
 const Dashboard = ({ user, onLogout }) => {
-	const [showUsers, setShowUsers] = useState(true);
+	const [showChats, setShowChats] = useState(true);
+	const [isChatCollapsed, setIsChatCollapsed] = useState(false);
+	const [activeChat, setActiveChatState] = useState({
+		type: "global",
+		target: null
+	});
 
-	const { connectionStatus, messages, users, sendMessage, connectWebSocket } =
-		useWebSocket(user?.username);
+	const {
+		connectionStatus,
+		messages,
+		users,
+		sendMessage,
+		requestHistoricalMessages,
+		unreadCounts,
+		markChatAsRead,
+		setActiveChat,
+		connectWebSocket,
+		availableRooms,
+		joinedRooms,
+		usersInRooms
+	} = useWebSocket(user?.username);
+
+	const { currentRoom, joinRoom, leaveRoom, createRoom, selectRoom } =
+		useRooms(sendMessage);
 
 	const {
 		activeChats,
 		newMessages,
+		roomNotifications,
 		addPrivateChat,
 		closeChat,
-		markMessageAsRead
+		markMessageAsRead,
+		addRoomNotification,
+		clearRoomNotifications
 	} = useChat();
 
 	const handleUserClick = (username) => {
 		markMessageAsRead(username);
 		addPrivateChat(username);
+		setActiveChatState({
+			type: "private",
+			target: username
+		});
+		// Request historical messages for this private chat
+		requestHistoricalMessages("private", username);
+		// Set active chat for unread tracking
+		setActiveChat("private", username);
+	};
+
+	const handleRoomSelect = (roomName) => {
+		selectRoom(roomName);
+		if (clearRoomNotifications) clearRoomNotifications(roomName);
+		setActiveChatState({
+			type: "room",
+			target: roomName
+		});
+		// Request historical messages for this room
+		requestHistoricalMessages("room", roomName);
+		// Set active chat for unread tracking
+		setActiveChat("room", roomName);
+	};
+
+	const handleGlobalChatSelect = () => {
+		setActiveChatState({
+			type: "global",
+			target: null
+		});
+		// Request historical messages for global chat
+		requestHistoricalMessages("global", null);
+		// Set active chat for unread tracking
+		setActiveChat("global", null);
 	};
 
 	const handleLogout = async () => {
@@ -40,42 +96,66 @@ const Dashboard = ({ user, onLogout }) => {
 		}
 	};
 
-	const handleToggleUsers = () => {
-		setShowUsers(!showUsers);
+	const handleToggleChats = () => {
+		setShowChats(!showChats);
+	};
+
+	const handleToggleChatCollapse = () => {
+		setIsChatCollapsed(!isChatCollapsed);
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-stone-900">
-			<Navbar
-				user={user}
-				connectionStatus={connectionStatus}
-				onReconnect={connectWebSocket}
-				onToggleUsers={handleToggleUsers}
-				onLogout={handleLogout}
-				showUsers={showUsers}
-			/>
+		<div className="min-h-screen bg-gray-50 dark:bg-stone-900 flex">
+			{/* Chat Sidebar */}
+			{showChats && (
+				<ChatSidebar
+					username={user?.username}
+					messages={messages}
+					sendMessage={sendMessage}
+					connectionStatus={connectionStatus}
+					users={users}
+					activeChats={activeChats}
+					onUserClick={handleUserClick}
+					newMessages={newMessages}
+					availableRooms={availableRooms}
+					joinedRooms={joinedRooms}
+					usersInRooms={usersInRooms}
+					onJoinRoom={joinRoom}
+					onCreateRoom={createRoom}
+					onLeaveRoom={leaveRoom}
+					currentRoom={currentRoom}
+					onRoomSelect={handleRoomSelect}
+					roomNotifications={roomNotifications}
+					onClearRoomNotifications={clearRoomNotifications}
+					isCollapsed={isChatCollapsed}
+					onToggleCollapse={handleToggleChatCollapse}
+					onGlobalChatSelect={handleGlobalChatSelect}
+					activeChat={activeChat}
+					unreadCounts={unreadCounts}
+					markChatAsRead={markChatAsRead}
+					setActiveChat={setActiveChat}
+				/>
+			)}
 
 			{/* Main Content */}
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-					{/* Sidebar */}
-					{showUsers && (
-						<div className="lg:col-span-1">
-							<ActiveUsers
-								users={users}
-								newMessages={newMessages}
-								onUserClick={handleUserClick}
-							/>
-						</div>
-					)}
+			<div
+				className={`flex-1 flex ${
+					showChats ? (isChatCollapsed ? "ml-16" : "ml-80") : "ml-0"
+				}`}>
+				{/* Left Side - Game Content */}
+				<div className="flex-1 flex flex-col">
+					<Navbar
+						user={user}
+						connectionStatus={connectionStatus}
+						onReconnect={connectWebSocket}
+						onToggleUsers={handleToggleChats}
+						onLogout={handleLogout}
+						showUsers={showChats}
+					/>
 
-					{/* Main Content Area */}
-					<div
-						className={`space-y-6 ${
-							showUsers ? "lg:col-span-3" : "lg:col-span-4"
-						}`}>
+					<div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 						{/* Welcome Message */}
-						<div className="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6">
+						<div className="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 mb-6">
 							<h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
 								Welcome,{" "}
 								<span className="text-indigo-600 dark:text-indigo-400">
@@ -97,38 +177,23 @@ const Dashboard = ({ user, onLogout }) => {
 								Game content will go here
 							</p>
 						</div>
-
-						{/* Chat Areas */}
-						<div className="space-y-4">
-							{activeChats.map((chat) => {
-								// Check if there are any private chats open
-								const hasPrivateChats = activeChats.some(
-									(c) => c.chatname !== "broadcast"
-								);
-								// Force minimize public chat if private chats are open
-								const shouldMinimizePublicChat =
-									chat.chatname === "broadcast" && hasPrivateChats;
-
-								return (
-									<Chat
-										key={chat.chatname}
-										chatname={chat.chatname}
-										username={user?.username}
-										messages={messages}
-										sendMessage={sendMessage}
-										connectionStatus={connectionStatus}
-										onClose={
-											chat.chatname !== "broadcast"
-												? () => closeChat(chat.chatname)
-												: null
-										}
-										forceMinimized={shouldMinimizePublicChat}
-									/>
-								);
-							})}
-						</div>
 					</div>
 				</div>
+
+				{/* Right Side - Chat Display */}
+				{showChats && !isChatCollapsed && (
+					<div className="w-96 border-l border-gray-200 dark:border-stone-600">
+						<ChatDisplay
+							chatType={activeChat.type}
+							chatTarget={activeChat.target}
+							username={user?.username}
+							messages={messages}
+							sendMessage={sendMessage}
+							connectionStatus={connectionStatus}
+							onLeaveRoom={leaveRoom}
+						/>
+					</div>
+				)}
 			</div>
 		</div>
 	);

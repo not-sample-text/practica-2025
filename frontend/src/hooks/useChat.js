@@ -6,6 +6,7 @@ import { useState, useCallback } from "react";
 export const useChat = () => {
 	const [activeChats, setActiveChats] = useState([{ chatname: "broadcast" }]);
 	const [newMessages, setNewMessages] = useState([]);
+	const [roomNotifications, setRoomNotifications] = useState(new Map());
 
 	const addPrivateChat = useCallback(
 		(username) => {
@@ -33,12 +34,32 @@ export const useChat = () => {
 		setNewMessages((prev) => [...prev.filter((u) => u !== username), username]);
 	}, []);
 
+	const addRoomNotification = useCallback((roomName) => {
+		setRoomNotifications((prev) => {
+			const newMap = new Map(prev);
+			const currentCount = newMap.get(roomName) || 0;
+			newMap.set(roomName, currentCount + 1);
+			return newMap;
+		});
+	}, []);
+
+	const clearRoomNotifications = useCallback((roomName) => {
+		setRoomNotifications((prev) => {
+			const newMap = new Map(prev);
+			newMap.delete(roomName);
+			return newMap;
+		});
+	}, []);
+
 	return {
 		activeChats,
 		newMessages,
+		roomNotifications,
 		addPrivateChat,
 		closeChat,
 		markMessageAsRead,
-		addNewMessage
+		addNewMessage,
+		addRoomNotification,
+		clearRoomNotifications
 	};
 };

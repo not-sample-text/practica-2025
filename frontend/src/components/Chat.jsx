@@ -156,7 +156,7 @@ const Chat = ({
 						type="text"
 						value={newMessage}
 						onChange={(e) => setNewMessage(e.target.value)}
-						onKeyPress={handleKeyPress}
+						onKeyUp={handleKeyPress}
 						placeholder={`Message ${
 							chatname === "broadcast" ? "everyone" : chatname
 						}...`}

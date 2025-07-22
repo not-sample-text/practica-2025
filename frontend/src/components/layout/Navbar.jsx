@@ -42,7 +42,7 @@ const Navbar = ({
 							onClick={onToggleUsers}
 							variant="secondary"
 							size="small">
-							{showUsers ? "Hide Users" : "Show Users"}
+							{showUsers ? "Hide Chats" : "Show Chats"}
 						</Button>
 						<Button
 							onClick={onLogout}
