@@ -15,5 +15,13 @@
   "Incercare2": {
     "username": "Incercare2",
     "password": "incercare23"
+  },
+  "vio": {
+    "username": "vio",
+    "password": "test12345678"
+  },
+  "calin": {
+    "username": "calin",
+    "password": "test12345"
   }
 }
