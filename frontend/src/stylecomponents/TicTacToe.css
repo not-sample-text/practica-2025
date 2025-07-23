@@ -1,0 +1,244 @@
+/* TicTacToe.css */
+.tictactoe-container {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  position: relative;
+}
+
+.ttt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.ttt-title h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.4em;
+}
+
+.ttt-players {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.player-info strong {
+  color: #ff9900;
+  font-size: 1.1em;
+}
+
+.vs {
+  color: #999;
+  font-weight: bold;
+}
+
+.close-game-btn {
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.close-game-btn:hover {
+  background: #cc3333;
+}
+
+.ttt-status {
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 1.1em;
+}
+
+.ttt-status.win {
+  background: #d4edda;
+  color: #155724;
+  border: 2px solid #c3e6cb;
+}
+
+.ttt-status.lose {
+  background: #f8d7da;
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+}
+
+.ttt-status.tie {
+  background: #fff3cd;
+  color: #856404;
+  border: 2px solid #ffeaa7;
+}
+
+.ttt-status.your-turn {
+  background: #cce5ff;
+  color: #004085;
+  border: 2px solid #99d1ff;
+  animation: pulse-blue 2s infinite;
+}
+
+.ttt-status.opponent-turn {
+  background: #f0f0f0;
+  color: #666;
+  border: 2px solid #ddd;
+}
+
+@keyframes pulse-blue {
+  0% { background: #cce5ff; }
+  50% { background: #b3d9ff; }
+  100% { background: #cce5ff; }
+}
+
+.ttt-board {
+  display: grid;
+  gap: 4px;
+  background: #333;
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.ttt-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.ttt-square {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 2em;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.ttt-square:hover:not(:disabled) {
+  background: #f0f8ff;
+  transform: scale(1.05);
+}
+
+.ttt-square.clickable {
+  background: #e6f3ff;
+  box-shadow: 0 0 0 2px #007bff;
+}
+
+.ttt-square.filled {
+  background: #f8f9fa;
+  cursor: default;
+}
+
+.ttt-square:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.ttt-square:disabled:hover {
+  transform: none;
+}
+
+.ttt-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ttt-reset-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ttt-reset-btn:hover {
+  background: #218838;
+}
+
+.ttt-waiting {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ttt-waiting p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .tictactoe-container {
+    margin: 10px;
+    padding: 15px;
+    max-width: none;
+  }
+  
+  .ttt-square {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5em;
+  }
+  
+  .ttt-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .close-game-btn {
+    align-self: flex-end;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+  }
+  
+  .ttt-players {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

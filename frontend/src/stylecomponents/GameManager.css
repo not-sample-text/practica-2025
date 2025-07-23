@@ -1,0 +1,158 @@
+/* GameManager.css */
+.game-manager {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.game-invitations {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #007bff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  max-width: 350px;
+}
+
+.game-invitations h4 {
+  margin: 0 0 12px 0;
+  color: #007bff;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-invitations h4::before {
+  content: "🎮";
+  font-size: 1.2em;
+}
+
+.game-invitation {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.game-invitation:last-child {
+  margin-bottom: 0;
+}
+
+.invitation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.invitation-text {
+  font-size: 0.95em;
+  color: #333;
+}
+
+.invitation-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.accept-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex: 1;
+}
+
+.accept-btn:hover {
+  background: #218838;
+}
+
+.decline-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex: 1;
+}
+
+.decline-btn:hover {
+  background: #c82333;
+}
+
+.active-games {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Notification animation for new invitations */
+.game-invitation {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+  .game-manager {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 40px);
+    max-width: 400px;
+    max-height: calc(100vh - 80px);
+  }
+  
+  .game-invitations {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-manager {
+    top: 50px;
+    width: calc(100vw - 20px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .game-invitations {
+    padding: 12px;
+  }
+  
+  .invitation-actions {
+    flex-direction: column;
+  }
+  
+  .accept-btn,
+  .decline-btn {
+    flex: none;
+  }
+}
