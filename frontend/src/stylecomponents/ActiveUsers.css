@@ -568,8 +568,8 @@
   }
   
   .selection-info {
-    background: rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.4);
-    color: #e2e8f0;
+    background: rgb(148, 196, 255);
+    border-color: rgba(31, 41, 89, 0.884);
+    color: #b40000;
   }
 }

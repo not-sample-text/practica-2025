@@ -6,17 +6,20 @@ const ActiveUsers = ({
   currentUsername,
   onStartPrivateChat,
   onStartGroupChat,
-  onInviteToGame, // New prop for game invitations
+  onInviteToGame, 
+  canInviteUser,
   activePrivateChats = [],
-  sentGameInvitations = [] // New prop for sent game invitations
+  sentGameInvitations = []
 }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
-  if (!users || users.length === 0) {
+  const otherUsers = users.filter(user => user && user !== currentUsername && user.trim() !== '');
+
+  if (!otherUsers || otherUsers.length === 0) {
     return (
       <div className="active-users-container">
-        <div className="no-users">No active users.</div>
+        <div className="no-users">No other active users.</div>
       </div>
     );
   }
@@ -36,12 +39,16 @@ const ActiveUsers = ({
   };
 
   // New function to handle game invitations
-  const handleGameInvite = (username, event) => {
-    event.stopPropagation(); // Prevent triggering user click
-    if (username !== currentUsername) {
-      onInviteToGame(username);
+const handleGameInvite = (username, event) => {
+  event.stopPropagation(); // Prevent triggering user click
+  if (username !== currentUsername) {
+    // Check if user can be invited before sending invitation
+    if (canInviteUser && !canInviteUser(username)) {
+      return;
     }
-  };
+    onInviteToGame(username);
+  }
+};
 
   const handleStartGroupChat = () => {
     if (selectedUsers.length > 0) {
@@ -61,18 +68,15 @@ const ActiveUsers = ({
     setSelectedUsers([]);
   };
 
-  const isCurrentUser = (username) => username === currentUsername;
   const hasActiveChat = (username) => activePrivateChats.includes(username);
   const isSelected = (username) => selectedUsers.includes(username);
   const hasPendingGameInvite = (username) => 
     sentGameInvitations.some(inv => inv.to === username);
 
-  const otherUsers = users.filter(user => user !== currentUsername);
-
   return (
     <div className="active-users-container">
       <div className="active-users-header">
-        <h3 className="active-users-title">Active Users ({users.length})</h3>
+        <h3 className="active-users-title">Active Users ({otherUsers.length})</h3>
         
         <div className="user-actions">
           {!isSelectionMode ? (
@@ -113,25 +117,23 @@ const ActiveUsers = ({
       )}
 
       <div className="users-list">
-        {users.map((user, idx) => (
+        {otherUsers.map((user, idx) => (
           <div
             key={user || idx}
-            className={`user-item ${
-              isCurrentUser(user) ? 'current-user' : 'other-user'
-            } ${hasActiveChat(user) ? 'active-chat' : ''} ${
+            className={`user-item other-user ${
+              hasActiveChat(user) ? 'active-chat' : ''
+            } ${
               isSelected(user) ? 'selected' : ''
             } ${isSelectionMode ? 'selection-mode' : ''}`}
             onClick={() => handleUserClick(user)}
             style={{
-              cursor: isCurrentUser(user) ? 'default' : 'pointer',
-              opacity: isCurrentUser(user) ? 0.7 : 1
+              cursor: 'pointer',
+              opacity: 1
             }}
             title={
-              isCurrentUser(user) 
-                ? 'You' 
-                : isSelectionMode 
-                  ? `${isSelected(user) ? 'Deselect' : 'Select'} ${user}`
-                  : `Click to start private chat with ${user}`
+              isSelectionMode 
+                ? `${isSelected(user) ? 'Deselect' : 'Select'} ${user}`
+                : `Click to start private chat with ${user}`
             }
           >
             <div className="user-avatar-container">
@@ -162,25 +164,24 @@ const ActiveUsers = ({
             </div>
             
             <div className="user-info">
-              <span className="username">
-                {isCurrentUser(user) ? `${user} (You)` : user}
-              </span>
-              <span className="status">
-                {isCurrentUser(user) ? 'Online' : 'Online •'}
-              </span>
+              <span className="username">{user}</span>
+              <span className="status">Online •</span>
             </div>
-
-            {/* Game invitation button */}
-            {!isCurrentUser(user) && !isSelectionMode && (
+              
+            {!isSelectionMode && (
               <div className="user-actions-buttons">
                 <button
-                  className={`game-invite-btn ${hasPendingGameInvite(user) ? 'pending' : ''}`}
+                  className={`game-invite-btn ${hasPendingGameInvite(user) ? 'pending' : ''} ${
+                    canInviteUser && !canInviteUser(user) ? 'disabled' : ''
+                  }`}
                   onClick={(e) => handleGameInvite(user, e)}
-                  disabled={hasPendingGameInvite(user)}
+                  disabled={hasPendingGameInvite(user) || (canInviteUser && !canInviteUser(user))}
                   title={
-                    hasPendingGameInvite(user) 
-                      ? 'Game invitation already sent' 
-                      : 'Invite to play Tic-Tac-Toe'
+                    hasPendingGameInvite(user)
+                      ? 'Game invitation already sent'
+                      : canInviteUser && !canInviteUser(user)
+                        ? 'Cannot invite - game in progress or pending invitation'
+                        : 'Invite to play Tic-Tac-Toe'
                   }
                 >
                   🎮
