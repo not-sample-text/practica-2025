@@ -1,60 +1,72 @@
-import { React, useEffect, useState } from 'react'
+import { React } from 'react'
 
-const getTokenFromCookie = () => {
-    const match = document.cookie.match(/token=([^;]+)/);
-    return match ? match[1] : null;
-};
+const Game = ({ gameState, websocketRef }) => {
 
-// Get username from JWT token
-const getUsernameFromToken = (token) => {
-    try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload.username || "Unknown User";
-        // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-        return "Unknown User";
+    const {
+        player,
+        opponent,
+        isMyTurn,
+        choice,
+        playerChoice,
+        opponentChoice,
+        winner,
+        message,
+        playerScore,
+        opponentScore
+    } = gameState;
+
+    const handleClick = (e) => {
+        const choice = e.target.value;
+
+        websocketRef.current?.send(JSON.stringify({
+            type: 'game',
+            player,
+            choice,
+            status: 'choice'
+        }));
+
     }
-};
 
-const Game = ({initiator, player, opponent, updateGameState, isGameStarted, isGameUpdate, setIsGameUpdate }) => {
-
-    const loggedInUser = getUsernameFromToken(getTokenFromCookie());
-    const [currentUser, setCurrentUser] = useState(initiator);
-    const [score, setScore] = useState(0);
-
-    useEffect(() => {
-        if(isGameUpdate){
-            console.log('setting states in game');
-            setScore(score + 1);
-            setCurrentUser(prevUser => prevUser === player ? opponent : player);
-            setIsGameUpdate(false);
-        }
-            
-    }, [isGameUpdate]);
-
-    const handleClick = () => {
-        setScore(score + 1);
-        setCurrentUser(prevUser => prevUser === player ? opponent : player);
-        updateGameState();
-    }
+    //TODO: add play again functionality
 
     return (
         <>
-            <h1>Jocul nostru</h1>
-            {isGameStarted ?
+            {opponent && player ?
                 (
                     <>
-                        <h3> Game started {player} vs {opponent}</h3>
-                        <h5>Current turn: {currentUser ? currentUser : (setCurrentUser(initiator))}</h5>
-                        <button onClick={handleClick} disabled={currentUser !== loggedInUser}>
-                            Click {score}
-                        </button>
+                        <h5>🎮 {player} vs {opponent} 🎮</h5>
+                        <div className='grid container-fluid' >
+                            <div  >
+                                <h4>🏆 Score</h4>
+                                <div>
+                                    <p><strong>{player}</strong> : {playerScore} 🎯</p>
+                                    <p><strong>{opponent}</strong> : {opponentScore} 🎯</p>
 
+                                    {winner && <h4>🏅 Winner : {winner} 🎉</h4>}
+                                </div>
+                            </div>
+                            <div className='d-flex-column d-flex-centerX' >
+                                {!winner ?
+                                    (<h4>🔄 {isMyTurn ? 'Your turn' : "Opponent's turn"}</h4>) :
+                                    (<h4>🏁 Game Over</h4>)}
+                                <div className="choices d-flex-row" style={{ gap: '10px' }}>
+                                    <button disabled={winner || !isMyTurn} onClick={handleClick} className='secondary' value='rock'>Rock 🌑</button>
+                                    <button disabled={winner || !isMyTurn} onClick={handleClick} className='contrast' value='paper'>Paper 📃</button>
+                                    <button disabled={winner || !isMyTurn} onClick={handleClick} value='scissors'>Scissors ✂️</button>
+                                </div>
+                                {playerChoice && opponentChoice &&
+                                    <>
+                                        <p style={{ minWidth: "250px" }}>🏹 <strong>{player}</strong> choosed: <strong>{playerChoice}</strong> </p>
+                                        <p style={{ minWidth: "250px" }}>🏹 <strong>{opponent}</strong> choosed: <strong>{opponentChoice}</strong></p>
+                                    </>}
+                                {message && <h4>💬 {message}</h4>}
+                                {winner && <button className='contrast'>↻ Play again</button>}
+                            </div>
+
+                        </div>
                     </>
                 ) :
-                (<h3>Waiting for opponent...</h3>)}
-
-
+                (<h3>⏳ Waiting for opponent...</h3>)}
         </>
     );
 };

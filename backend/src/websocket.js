@@ -1,11 +1,13 @@
 // WebSocket handling
 
 const auth = require("./auth");
+const RockPaperScissors = require('./game/rockPaperScissors');
 
 class WebSocketManager {
 
 	constructor() {
 		this.clients = new Map();
+		this.game = new RockPaperScissors(this.sendGameData.bind(this));
 	}
 
 	handleConnection(ctx) {
@@ -48,10 +50,10 @@ class WebSocketManager {
 					this.privateMessage(token, parsed);
 					break;
 				case 'challenge':
-					this.sendGameData(parsed);
+					this.manageChallenge(parsed);
 					break;
 				case 'game':
-					this.sendGameData(parsed);
+					this.manageGame(parsed);
 					break;
 				default:
 					console.log(`Unknown message type: ${message}`);
@@ -60,7 +62,6 @@ class WebSocketManager {
 						message: `Unknown message type: ${parsed.type}`
 					}));
 			}
-
 		});
 
 		this.sendUsernames();
@@ -111,13 +112,38 @@ class WebSocketManager {
 
 	sendUsernames() {
 		if (this.clients?.size === 0) return;
-		// const message = JSON.stringify({ type: 'usernames', usernames: this.usernames });
 		const content = Array.from(this.clients.keys()).map(token => auth.getUsernameFromToken(token));
 		(this.clients).forEach((client) => {
 			if (client.readyState === client.OPEN) {
 				client.send(JSON.stringify({ type: 'usernames', content }));
 			}
 		})
+	}
+
+
+	manageChallenge(challenge) {
+		switch (challenge.status) {
+			case 'initiated':
+				this.sendGameData(challenge);
+				break;
+			case 'accepted':
+				// the user who accepts the challenge will send this status(accepted), so he is the accepter
+				const inviter = challenge.to;
+				const accepter = challenge.from;
+				this.game.startGame(inviter, accepter);
+				break;
+			case 'rejected':
+				this.sendGameData(challenge);
+				break;
+		}
+	}
+
+	manageGame(game) {
+		switch (game.status) {
+			case 'choice':
+				this.game.handleChoice(game);
+				break;
+		}
 	}
 
 	// for sending game related data between users
@@ -132,9 +158,7 @@ class WebSocketManager {
 				}
 			}
 		});
-
 	}
-
 
 	userAlreadyConnected(token) {
 		const currentUsername = auth.getUsernameFromToken(token);

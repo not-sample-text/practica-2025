@@ -31,5 +31,5 @@ app
 	// .use(handlers.handleDefault);	
 
 // Start server
-app.listen(config.port);
+app.listen(config.port, '0.0.0.0');
 console.log(`http://localhost:${config.port}`);

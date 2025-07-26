@@ -16,7 +16,6 @@ const getUsernameFromToken = (token) => {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.username || "Unknown User";
-    // eslint-disable-next-line no-unused-vars
   } catch (error) {
     return "Unknown User";
   }
@@ -28,24 +27,16 @@ function App() {
   const [messages, setMessages] = React.useState([]);
   const [connectionStatus, setConnectionStatus] = React.useState("disconnected");
   const [selectedChat, setSelectedChat] = React.useState("broadcast");
-  const [challengedUser, setChallengedUser] = React.useState(null);
   const [challengeInitiator, setChallengeInitiator] = React.useState(null);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = React.useState(false);
-  const [isGameStarted, setIsGameStarted] = React.useState(false);
-  const [player, setPlayer] = React.useState(null);
-  const [opponent, setOpponent] = React.useState(null);
-  const [isGameUpdate, setIsGameUpdate] = React.useState(false);
+  const [gameState, setGameState] = React.useState(null);
+
   const username = getUsernameFromToken(getTokenFromCookie());
-
   const websocketRef = useRef(null);
-
-
 
   // WebSocket connection effect
   useEffect(() => {
     if (isLoggedIn) {
-      // set username again when the page reloads(not only at log in)
-      // setUsername();
       connectWebSocket();
     } else {
       disconnectWebSocket();
@@ -55,11 +46,6 @@ function App() {
       disconnectWebSocket();
     };
   }, [isLoggedIn]);
-
-  // useEffect(() => {
-  //   loggedInUser = username;
-
-  // }, [username]);
 
   const connectWebSocket = () => {
 
@@ -141,7 +127,6 @@ function App() {
   };
 
   const handleLogin = (loggedInUsername) => {
-    // setUsername(loggedInUsername);
     setIsLoggedIn(true);
     setMessages([]); // Clear messages on login
   };
@@ -191,28 +176,10 @@ function App() {
   const manageChallenge = (challenge) => {
     switch (challenge.status) {
       case 'initiated':
-        // print('initiated:', username)
-        openModal(true);
         setChallengeInitiator(challenge.from);
-        // daca status e initiated at. utilizatorul care primeste challenge-ul va fi opponent
-        setPlayer(username);
-        setOpponent(challenge.from);
-        break;
-      case 'accepted':
-        // doar utilizatorul care initeaza challenge-ul va primi acest status si va fi setat ca player
-        // print('accepted:', username)
-        setIsGameStarted(true);
-        setPlayer(username);
-        setOpponent(challenge.from);
-        setChallengeInitiator(username);
-        
-        alert(`${challenge.from} has accepted your challenge`);
+        openModal(true);
         break;
       case 'rejected':
-
-        challengedUser(null);
-        setPlayer(null);
-        setOpponent(null);
         alert(`${challenge.from} has rejected your challenge`);
         break;
     }
@@ -225,7 +192,7 @@ function App() {
         type: 'challenge',
         from: username,
         to: user,
-        status: status
+        status
       }
 
       websocketRef.current.send(JSON.stringify(challenge));
@@ -234,15 +201,12 @@ function App() {
 
   const handleChallengeUser = (user) => {
     sendChallenge(user, 'initiated');
-    // setIsChallenged(true);
-    setChallengedUser(user);
   }
 
   const openModal = () => setIsChallengeModalOpen(true);
   const closeModal = () => setIsChallengeModalOpen(false);
   const handleAccept = () => {
     sendChallenge(challengeInitiator, 'accepted');
-    setIsGameStarted(true);
     closeModal();
   };
   const handleReject = () => {
@@ -251,27 +215,39 @@ function App() {
   };
 
 
-  const updateGameState = () => {
-    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-      console.log('sending update to server');
-      const gameState = {
-        type: 'game',
-        from: player,
-        to: opponent,
-        status: 'update'
-      }
-      
-      websocketRef.current.send(JSON.stringify(gameState));
-    }
-  }
+  const manageGame = (game) => {
 
-  const manageGame = (gameState) => {
-    switch(gameState.status) {
-      case 'update':
-        console.log('setting update to true')
-        setIsGameUpdate(true);
+    switch (game.status) {
+      case 'start':
+        const gameState = {
+          player: game.to,
+          opponent: game.opponent,
+          isMyTurn: game.isMyTurn,
+          choice: null,
+          playerChoice: '',
+          opponentChoice: '',
+          playerScore: 0,
+          opponentScore: 0,
+          winner: null,
+          message: ''
+        }
+        setGameState(gameState);
+        break;
+      case 'choice':
+        setGameState(prevState => ({
+          ...prevState,
+          isMyTurn: username === game.nextTurn,
+          message: game.message,
+          choice: game.choice,
+          winner: game.winner,
+          playerChoice: game.playerChoice,
+          opponentChoice: game.opponentChoice,
+          playerScore: game.playerScore,
+          opponentScore: game.opponentScore
+        }));
         break;
     }
+
   }
 
   return isLoggedIn ? (
@@ -307,16 +283,20 @@ function App() {
 
         </div>
 
-        <div className="game-container d-flex-centerX d-flex-column" style={{ backgroundColor: "rgb(29, 36, 50)", border: "2px solid rgba(102, 112, 133, 1)" }}>
-          <Game
-            initiator={challengeInitiator}
-            isGameStarted={isGameStarted}
-            player={player}
-            opponent={opponent}
-            updateGameState={updateGameState}
-            isGameUpdate={isGameUpdate}
-            setIsGameUpdate={setIsGameUpdate}
-          />
+        <div className="game-container d-flex-centerX d-flex-column" style={{ backgroundColor: "rgb(29, 36, 50)", border: "2px solid rgba(102, 112, 133, 1)", minHeight: '500px'}}>
+          <h2>Rock Paper Scissors ✊📃✂️</h2>
+          {gameState !== null ? (
+            <Game
+              gameState={gameState}
+              websocketRef={websocketRef}
+            />
+          ) : (
+            <>
+              <h3>
+                ⚔️ Challenge a user to play the game
+              </h3>
+            </>
+          )}
 
         </div>
 
